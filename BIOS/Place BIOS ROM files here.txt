@@ -1,0 +1,1 @@
+Place the VZ200 BIOS ROM files in this directory.

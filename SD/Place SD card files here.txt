@@ -1,0 +1,1 @@
+Place files for the emulated SD card in this directory.

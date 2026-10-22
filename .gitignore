@@ -1,3 +1,10 @@
 *~
 /build
 /jar
+/BIOS
+!/BIOS/
+/BIOS/*
+!/BIOS/Place BIOS ROM files here.txt
+/SD/*
+!/SD/VZDOS.VZ
+!/SD/Place SD card files here.txt
