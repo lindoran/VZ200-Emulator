@@ -69,6 +69,7 @@ public class Keyboard extends JFrame
     panel = new KeyboardPanel(matrix);
     getContentPane().add(panel, BorderLayout.CENTER);
     pack();
+    WindowMemory.restoreAndTrack(this, "keyboard");
     setVisible(true);
     if (UserPreferences.getInstance().getKeyboardIconified()) {
       setExtendedState(ICONIFIED);

@@ -1,78 +1,38 @@
 package emulator.vz200;
 
-import emulator.z80.WallClockProvider;
-
-public class Speaker implements SignalEventSource, LineControlListener
+/**
+ * The VZ200's loudspeaker.  It sits between two latch bits (bit 0 and
+ * bit 5 of the I/O latch at $6800), so the cone is pushed one way or
+ * the other by their difference.  The ROM's SOUND routine toggles both
+ * bits together (XOR $21), i.e. swings the full -1 .. +1 range.
+ */
+public class Speaker
 {
-  private final SignalEventQueue eventQueue;
-  private final short[] elongation;
-  private boolean muted;
+  private static final double FULL_SCALE = 0.8;
 
-  private Speaker()
+  private final SignalVoice voice;
+
+  public Speaker(final AudioOutput output)
   {
-    throw new UnsupportedOperationException("unsupported empty constructor");
+    voice = new SignalVoice(output, FULL_SCALE);
   }
 
-  public Speaker(final WallClockProvider wallClockProvider)
-  {
-    elongation = new short[3];
-    eventQueue =
-      new SignalEventQueue("speaker", wallClockProvider, (short)0);
-  }
+  public SignalVoice getVoice() { return voice; }
 
-  public void lineChanged(final SourceDataLineChangeEvent event)
-  {
-    eventQueue.reset(event.getCurrentWallClockTime(), (short)0);
-  }
-
-  @Override
-  public void resync()
-  {
-    eventQueue.resync();
-  }
-
-  public void volumeChanged(final double volume)
-  {
-    final int amplitude =
-      (int)Math.min(Math.max(volume * 32767.0, 0.0), 32767.0);
-    elongation[0] = 0;
-    elongation[1] = (short)amplitude;
-    elongation[2] = (short)(2 * amplitude + 1);
-  }
-
-  public void mutedChanged(final boolean muted)
-  {
-    this.muted = muted;
-  }
-
-  public long getAvailableNanoSeconds()
-  {
-    return eventQueue.getAvailableNanoSeconds();
-  }
-
+  /** Called by the emulated CPU for every write to the latch. */
   public void putEvent(final int plusPinValue, final int minusPinValue,
                        final long wallClockTime)
   {
-    if (!muted) {
-      final short currentElongation =
-        elongation[plusPinValue - minusPinValue + 1];
-      eventQueue.put(currentElongation, wallClockTime);
-    }
+    voice.set(plusPinValue - minusPinValue, wallClockTime);
   }
 
-  public void getEvent(final SignalEventQueue.Event event,
-                       final long maxTimeSpan)
+  public void tick(final long wallClockTime)
   {
-    if (maxTimeSpan <= 0) {
-      throw new IllegalArgumentException("maxTimeSpan <= 0");
-    }
-    eventQueue.get(event, maxTimeSpan);
+    voice.advance(wallClockTime);
+  }
+
+  public void resync(final long wallClockTime)
+  {
+    voice.reset(wallClockTime);
   }
 }
-
-/*
-  Local Variables:
-    coding:utf-8
-    mode:Java
-    End:
-*/

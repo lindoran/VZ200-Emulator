@@ -24,7 +24,7 @@ public class UserPreferences
   private static final boolean PREFS_DEFAULT_KBD_ICONIFIED = false;
 
   private static final String PREFS_NAME_CASSETTE_OUT_MIXER =
-    "cassette-out/mixer";
+    "cassette-out/output-device";
   private static final String PREFS_DEFAULT_CASSETTE_OUT_MIXER = null;
 
   private static final String PREFS_NAME_CASSETTE_OUT_LINE =
@@ -36,11 +36,13 @@ public class UserPreferences
   private static final double PREFS_DEFAULT_CASSETTE_OUT_VOLUME = 1.0;
 
   private static final String PREFS_NAME_CASSETTE_OUT_MUTED =
-    "cassette-out/muted";
-  private static final boolean PREFS_DEFAULT_CASSETTE_OUT_MUTED = false;
+    "cassette-out/monitor-muted";
+  // The cassette monitor is off unless asked for: it would need a
+  // second playback line next to the speaker.
+  private static final boolean PREFS_DEFAULT_CASSETTE_OUT_MUTED = true;
 
   private static final String PREFS_NAME_SPEAKER_MIXER =
-    "speaker/mixer";
+    "speaker/output-device";
   private static final String PREFS_DEFAULT_SPEAKER_MIXER = null;
 
   private static final String PREFS_NAME_SPEAKER_LINE =
@@ -351,11 +353,22 @@ public class UserPreferences
                                   PREFS_DEFAULT_CASSETTE_IN_VZ_TRIM_LEAD_IN);
     return trimLeadIn;
   }
-}
 
-/*
-  Local Variables:
-    coding:utf-8
-    mode:Java
-    End:
-*/
+  /** Saved screen position of a window, or null if none saved. */
+  public java.awt.Point getWindowLocation(final String windowName)
+  {
+    final String key = "window/" + windowName + "/";
+    final int missing = Integer.MIN_VALUE;
+    final int x = vz200Preferences.getInt(key + "x", missing);
+    final int y = vz200Preferences.getInt(key + "y", missing);
+    return (x == missing || y == missing) ? null : new java.awt.Point(x, y);
+  }
+
+  public void setWindowLocation(final String windowName, final int x,
+                                final int y)
+  {
+    final String key = "window/" + windowName + "/";
+    vz200Preferences.putInt(key + "x", x);
+    vz200Preferences.putInt(key + "y", y);
+  }
+}

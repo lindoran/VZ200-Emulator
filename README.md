@@ -232,9 +232,26 @@ sample values.  The emulator automatically converts the emulated
 plucked membrane's state into a continuous stream of samples
 appropriate for a modern sound card.
 
-![Fig. 5: Speaker Line Selection](doc/screenshots/speaker-line-selection.png)
+The panel lets you pick the output device ("System default" is the
+safe choice), play a test tone that does not involve the emulator, set
+the volume and mute.  A status box shows which device and format were
+actually opened, how much audio is buffered, and, if no device could
+be opened, every reason why.
 
-Fig. 5: Speaker Line Selection
+If there is no sound, run these from a terminal (no emulator window
+needed):
+
+    java -jar vz200.jar --audio-list     # what Java Sound can see
+    java -jar vz200.jar --audio-test     # 3 second 440 Hz tone
+
+Other sound options: `--audio-device NAME` (as listed by
+`--audio-list`) and `--no-audio`.  The system properties
+`-Dvz200.audio.latency=MS` (default 80) and `-Dvz200.audio.buffer=MS`
+(default 60) trade latency against robustness; raise them if the sound
+crackles.
+
+The cassette monitor (hear the cassette signal) is off by default; it
+opens a second playback line only while its Mute box is unchecked.
 
 
 #### Cassette I/O Settings

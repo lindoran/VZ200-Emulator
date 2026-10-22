@@ -1,7 +1,5 @@
 package emulator.vz200;
 
-import javax.sound.sampled.Mixer;
-import javax.sound.sampled.Line;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
@@ -14,37 +12,21 @@ public class CassetteControl extends JPanel
 {
   private static final long serialVersionUID = 7805962032130043825L;
 
-  private static class CassetteOutPreferencesChangeListener
-    implements LineControlListener
+  private static class CassetteOutPrefs implements AudioOutputControl.Prefs
   {
-    public void lineChanged(final SourceDataLineChangeEvent event)
-    {
-      final UserPreferences userPreferences = UserPreferences.getInstance();
-      final Mixer.Info mixerInfo = event.getMixerInfo();
-      if (mixerInfo != null) {
-        userPreferences.setCassetteOutMixer(mixerInfo.toString());
-      }
-      final Line.Info lineInfo = event.getLineInfo();
-      if (lineInfo != null) {
-        userPreferences.setCassetteOutLine(lineInfo.toString());
-      }
-    }
-
-    public void volumeChanged(final double volume)
-    {
-      UserPreferences.getInstance().setCassetteOutVolume(volume);
-    }
-
-    public void mutedChanged(final boolean muted)
-    {
-      UserPreferences.getInstance().setCassetteOutMuted(muted);
-    }
+    private final UserPreferences p = UserPreferences.getInstance();
+    public String getDevice() { return p.getCassetteOutMixer(); }
+    public void setDevice(final String id) { p.setCassetteOutMixer(id); }
+    public double getVolume() { return p.getCassetteOutVolume(); }
+    public void setVolume(final double v) { p.setCassetteOutVolume(v); }
+    public boolean getMuted() { return p.getCassetteOutMuted(); }
+    public void setMuted(final boolean m) { p.setCassetteOutMuted(m); }
   }
 
   private final CassetteTransportControl transportControl;
 
-  public CassetteControl(final LineControlListener cassetteOut,
-                         final MonoAudioStreamRenderer cassetteOutRenderer,
+  public CassetteControl(final CassetteCtrlRoomOut cassetteOut,
+                         final AudioOutput cassetteOutput,
                          final WallClockProvider wallClockProvider,
                          final JFrame owner)
   {
@@ -78,22 +60,11 @@ public class CassetteControl extends JPanel
     tpSettings.addTab("Cass Out → Host File", null,
                       cassetteOutControl, "Configure Cassette Output");
 
-    final String cassOutId = "Cassette Out";
-    final String cassOutBorderTitle = "Common";
-    final String cassOutMixerInfoId = userPreferences.getCassetteOutMixer();
-    final String cassOutLineInfoId = userPreferences.getCassetteOutLine();
-    final double cassOutInitialVolume = userPreferences.getCassetteOutVolume();
-    final boolean cassOutInitiallyMuted = userPreferences.getCassetteOutMuted();
-    final LineControl cassOutLineControl =
-      LineControl.create(cassOutId, cassOutBorderTitle,
-                         cassOutMixerInfoId, cassOutLineInfoId,
-                         cassOutInitialVolume, cassOutInitiallyMuted,
-                         wallClockProvider,
-                         new CassetteOutPreferencesChangeListener(),
-                         owner);
-    cassOutLineControl.addListener(cassetteOut);
-    cassOutLineControl.addListener(cassetteOutRenderer);
-    cassetteOutControl.add(cassOutLineControl);
+    cassetteOutControl.add(new AudioOutputControl("Cassette monitor",
+                                                  cassetteOutput,
+                                                  cassetteOut.getVoice(),
+                                                  new CassetteOutPrefs(),
+                                                  true));
 
     transportControl = new CassetteTransportControl(wallClockProvider);
     add(transportControl);

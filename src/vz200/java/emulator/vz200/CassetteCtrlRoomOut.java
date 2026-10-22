@@ -1,90 +1,47 @@
 package emulator.vz200;
 
-import emulator.z80.WallClockProvider;
-
+/**
+ * Optional "control room" monitor: lets you listen to the cassette
+ * signal (what the program writes to tape, and what the emulated tape
+ * deck feeds in).  Off by default; it uses an output of its own so it
+ * never competes with the speaker for the sound device unless enabled.
+ */
 public class CassetteCtrlRoomOut
-  implements SignalEventSource, LineControlListener
 {
-  private final SignalEventQueue eventQueue;
-  private final short[] elongation;
-  private boolean muted;
+  private static final double FULL_SCALE = 0.5;
+  /**
+   * Signal level for the two cassette output bits.  Same levels the
+   * WAV recorder uses (CassetteFileOut).
+   */
+  private static final double[] LEVEL = {-1.0, -0.9375, 0.0, +1.0};
 
-  private CassetteCtrlRoomOut()
+  private final AudioOutput output;
+  private final SignalVoice voice;
+
+  public CassetteCtrlRoomOut(final AudioOutput output)
   {
-    throw new UnsupportedOperationException("unsupported empty constructor");
+    this.output = output;
+    voice = new SignalVoice(output, FULL_SCALE);
   }
 
-  public CassetteCtrlRoomOut(final WallClockProvider wallClockProvider)
-  {
-    elongation = new short[4];
-    eventQueue =
-      new SignalEventQueue("cassette ctrl room out",
-                           wallClockProvider, (short)0);
-  }
-
-  private void printMessage(final String message)
-  {
-    System.out.printf("CassetteCtrlRoomOut: %s%n", message);
-  }
-
-  @Override
-  public void lineChanged(final SourceDataLineChangeEvent event)
-  {
-    eventQueue.reset(event.getCurrentWallClockTime(), (short)0);
-  }
-
-  @Override
-  public void resync()
-  {
-    eventQueue.resync();
-  }
-
-  @Override
-  public void volumeChanged(final double volume)
-  {
-    final int amplitude =
-      (int)Math.min(Math.max(volume * 32767.0, 0.0), 32767.0);
-    elongation[0] = (short)(amplitude >>> 8);
-    elongation[1] = (short)(amplitude >>> 4);
-    elongation[2] = (short)amplitude;
-    elongation[3] = (short)(-(amplitude >>> 8) - 1);
-    printMessage("amplitude changed: " + amplitude);
-  }
-
-  @Override
-  public void mutedChanged(final boolean muted)
-  {
-    this.muted = muted;
-  }
-
-  @Override
-  public long getAvailableNanoSeconds()
-  {
-    return eventQueue.getAvailableNanoSeconds();
-  }
+  public SignalVoice getVoice() { return voice; }
 
   public void putEvent(final int dataValue, final long wallClockTime)
   {
-    if (!muted) {
-      final short signalValue = elongation[dataValue];
-      eventQueue.put(signalValue, wallClockTime);
+    if (output.isEnabled()) {
+      voice.set(LEVEL[dataValue & 3], wallClockTime);
     }
   }
 
-  @Override
-  public void getEvent(final SignalEventQueue.Event event,
-                       final long maxTimeSpan)
+  public void tick(final long wallClockTime)
   {
-    if (maxTimeSpan <= 0) {
-      throw new IllegalArgumentException("maxTimeSpan <= 0");
+    if (output.isEnabled()) {
+      voice.advance(wallClockTime);
     }
-    eventQueue.get(event, maxTimeSpan);
+  }
+
+  public void resync(final long wallClockTime)
+  {
+    voice.reset(wallClockTime);
   }
 }
-
-/*
-  Local Variables:
-    coding:utf-8
-    mode:Java
-    End:
-*/

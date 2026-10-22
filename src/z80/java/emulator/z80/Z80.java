@@ -4471,6 +4471,12 @@ public class Z80 implements CPU {
       } else {
 	int opCodeLength = decode(concreteOperation, memoryCodeFetcher, false);
 	regPC.setValue((regPC.getValue() + opCodeLength) & 0xffff);
+        // The refresh register counts instruction fetches (low 7 bits;
+        // bit 7 only changes via LD R,A).  Software uses LD A,R as a
+        // cheap random number source.  Counted once per instruction,
+        // so prefixed opcodes (which really count twice) are approximate.
+        final int r = regR.getValue();
+        regR.setValue((r & 0x80) | ((r + 1) & 0x7f));
         if (irq_to_be_enabled) {
           irq_enabled = true;
           irq_to_be_enabled = false;

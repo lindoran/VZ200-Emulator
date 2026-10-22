@@ -131,6 +131,7 @@ public class Video extends JFrame
     getContentPane().add(panel);
     videoRAM = panel.getVideoRAM();
     pack();
+    WindowMemory.restoreAndTrack(this, "video");
     setVisible(true);
   }
 

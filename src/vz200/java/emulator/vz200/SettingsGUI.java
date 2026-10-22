@@ -35,24 +35,24 @@ public class SettingsGUI extends JFrame
 
   public SettingsGUI(final CPUControlAPI cpuControl,
                      final CPU cpu,
-                     final LineControlListener speaker,
-                     final MonoAudioStreamRenderer speakerRenderer,
-                     final LineControlListener cassetteOut,
-                     final MonoAudioStreamRenderer cassetteOutRenderer,
+                     final Speaker speaker,
+                     final AudioOutput speakerOutput,
+                     final CassetteCtrlRoomOut cassetteOut,
+                     final AudioOutput cassetteOutput,
                      final WallClockProvider wallClockProvider)
   {
     super("Settings");
     if (speaker == null) {
       throw new NullPointerException("speaker");
     }
-    if (speakerRenderer == null) {
-      throw new NullPointerException("speakerRenderer");
+    if (speakerOutput == null) {
+      throw new NullPointerException("speakerOutput");
     }
     if (cassetteOut == null) {
       throw new NullPointerException("cassetteOut");
     }
-    if (cassetteOutRenderer == null) {
-      throw new NullPointerException("cassetteOutRenderer");
+    if (cassetteOutput == null) {
+      throw new NullPointerException("cassetteOutput");
     }
 
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -61,11 +61,11 @@ public class SettingsGUI extends JFrame
     final JTabbedPane tpSettings = new JTabbedPane();
     add(tpSettings);
     final SpeakerControl speakerControl =
-      new SpeakerControl(speaker, speakerRenderer, wallClockProvider, this);
+      new SpeakerControl(speaker, speakerOutput);
     tpSettings.addTab(null, Icons.LINE_UNMUTED,
                       speakerControl, "Configure Speaker Ouput");
     final CassetteControl cassetteControl =
-      new CassetteControl(cassetteOut, cassetteOutRenderer, wallClockProvider,
+      new CassetteControl(cassetteOut, cassetteOutput, wallClockProvider,
                           this);
     transportControl = cassetteControl.getTransportControl();
     tpSettings.addTab(null, Icons.TAPE,
@@ -74,6 +74,7 @@ public class SettingsGUI extends JFrame
     tpSettings.addTab(null, Icons.CPU,
                       cpuControlGUI, "Configure CPU Settings");
     pack();
+    WindowMemory.restoreAndTrack(this, "settings");
     setVisible(true);
   }
 

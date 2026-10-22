@@ -1,0 +1,4804 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE annotations [
+  <!ENTITY nbsp "&#xa0;">
+]>
+<annotations
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.soundpaint.org/2018/Z80-Emulator/Annotations"
+    xsi:schemaLocation="device-schema.xsd">
+  <at address="0x0000">
+    <label>rst00</label>
+    <header>-------- BASIC V2.0 --------</header>
+    <comment>cold entry point</comment>
+  </at>
+  <at address="0x0008">
+    <label>rst08_consume_char</label>
+    <comment>RST 08H entry point</comment>
+  </at>
+  <at address="0x0010">
+    <label>rst10_parse_lookahead</label>
+    <comment>RST 10H entry point</comment>
+  </at>
+  <at address="0x0018">
+    <label>rst18_cmp_DE_HL</label>
+    <comment>RST 18H entry point</comment>
+  </at>
+  <at address="0x0020">
+    <label>rst20</label>
+    <comment>RST 20H entry point</comment>
+  </at>
+  <at address="0x0028">
+    <label>rst28</label>
+    <comment>RST 28H entry point</comment>
+  </at>
+  <at address="0x0030">
+    <label>rst30</label>
+    <comment>RST 30H entry point</comment>
+  </at>
+  <at address="0x0038">
+    <label>rst38_kbd_scan</label>
+    <comment>RST 38H entry point</comment>
+  </at>
+  <at address="0x0050">
+    <label>cursor_store_ch</label>
+    <comment>store character under cursor</comment>
+  </at>
+  <at address="0x0075">
+    <label>init_cbs2</label>
+    <comment>
+      copy cb vector; target is area in RAM<br />
+      at 0x7880..0x78a6
+    </comment>
+  </at>
+  <at address="0x0078">
+    <comment>
+      source is default vectors from ROM
+    </comment>
+  </at>
+  <at address="0x007b">
+    <comment>
+      total size to copy is 39 bytes<br />
+      (probably, a mistake; should be 38 bytes instead<br />
+      to avoid clash with subsequent " ERROR\0" string in ROM)
+    </comment>
+  </at>
+  <at address="0x00ff">
+    <comment>pointer to string of greeting text</comment>
+  </at>
+  <at address="0x0102">
+    <comment>print greeting text</comment>
+  </at>
+  <at address="0x010f">
+    <label>txt_greeting</label>
+    <comment>greeting text</comment>
+    <data-bytes length="0x1e">"VIDEO TECHNOLOGY\nBASIC V2.0\n\n\0"</data-bytes>
+  </at>
+  <at address="0x0135">
+    <label>cmd_set</label>
+    <comment>
+      handler for token 0x83 ("SET")
+    </comment>
+  </at>
+  <at address="0x0138">
+    <label>cmd_reset</label>
+    <comment>
+      handler for token 0x82 ("RESET")
+    </comment>
+  </at>
+  <at address="0x013c">
+    <data-bytes length="0x01">"("</data-bytes>
+    <comment>left parenthesis</comment>
+  </at>
+  <at address="0x0147">
+    <data-bytes length="0x01">","</data-bytes>
+    <comment>comma</comment>
+  </at>
+  <at address="0x014b">
+    <comment>
+      SET: determine memory location to<br />
+      change check: y coordinate &lt;= 64
+    </comment>
+  </at>
+  <at address="0x0150">
+    <comment>
+      multiply y coordinate with<br />
+      32 (bytes per row)
+    </comment>
+  </at>
+  <at address="0x015a">
+    <comment>
+      get x coordinate and divide by<br />
+      4 (pixels per byte)
+    </comment>
+  </at>
+  <at address="0x0162">
+    <comment>screen starts at 0x7000</comment>
+  </at>
+  <at address="0x0167">
+    <comment>#pixels within screen byte</comment>
+  </at>
+  <at address="0x0169">
+    <comment>*=2 bits per pixel to shift</comment>
+  </at>
+  <at address="0x016a">
+    <comment>store as counter for upcoming DJNZ</comment>
+  </at>
+  <at address="0x0171">
+    <comment>
+      fill C with 1 bits as reservoir for<br />
+      shifting in upcoming RRC instructions
+    </comment>
+  </at>
+  <at address="0x0173">
+    <comment>
+      get current 3 bit color code<br />
+      (in high nybble)
+    </comment>
+  </at>
+  <at address="0x0176">
+    <comment>drop 3rd bit, shift others to MSB</comment>
+  </at>
+  <at address="0x017a">
+    <comment>
+      loop: #B iterations<br />
+      [NOTE: here is a performance bug:<br />
+      If A=0 (which occurs for every 4th pixel),<br />
+      the loop wastes time by iterating 256 times,<br />
+      while it would not needed to be entered at all.]
+    </comment>
+  </at>
+  <at address="0x0183">
+    <label>exit_err</label>
+    <header>print "ERROR" and go in edit mode</header>
+  </at>
+  <at address="0x0188">
+    <comment>print "ERROR\r"</comment>
+  </at>
+  <at address="0x01c9">
+    <label>cmd_cls</label>
+    <comment>
+      handler for token 0x84 ("CLS")
+    </comment>
+  </at>
+  <at address="0x01cb">
+    <comment>
+      cursor home
+    </comment>
+  </at>
+  <at address="0x01ce">
+    <comment>
+      clear screen
+    </comment>
+  </at>
+  <at address="0x01d3">
+    <label>cmd_0xa6</label>
+    <comment>
+      handler for token 0xa6 (hidden)
+    </comment>
+  </at>
+  <at address="0x02cf">
+    <label>pitch_table</label>
+    <comment>wave period (0x0272) of pitch #1 (A2)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x02d1">
+    <comment>wave period (0x024f) of pitch #2 (A#2)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x02d3">
+    <comment>wave period (0x022e) of pitch #3 (B2)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x02d5">
+    <comment>wave period (0x020e) of pitch #4 (C3)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x02d7">
+    <comment>wave period (0x01f1) of pitch #5 (C#3)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x02d9">
+    <comment>wave period (0x01d5) of pitch #6 (D3)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x02db">
+    <comment>wave period (0x01b7) of pitch #7 (D#3)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x02dd">
+    <comment>wave period (0x019e) of pitch #8 (E3)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x02df">
+    <comment>wave period (0x0186) of pitch #9 (F3)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x02e1">
+    <comment>wave period (0x0170) of pitch #10 (F#3)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x02e3">
+    <comment>wave period (0x015b) of pitch #11 (G3)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x02e5">
+    <comment>wave period (0x0148) of pitch #12 (G#3)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x02e7">
+    <comment>wave period (0x0135) of pitch #13 (A3)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x02e9">
+    <comment>wave period (0x0123) of pitch #14 (A#3)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x02eb">
+    <comment>wave period (0x0113) of pitch #15 (B3)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x02ed">
+    <comment>wave period (0x0103) of pitch #16 (C4)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x02ef">
+    <comment>wave period (0x00f4) of pitch #17 (C#4)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x02f1">
+    <comment>wave period (0x00e6) of pitch #18 (D4)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x02f3">
+    <comment>wave period (0x00d9) of pitch #19 (D#4)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x02f5">
+    <comment>wave period (0x00cd) of pitch #20 (E4)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x02f7">
+    <comment>wave period (0x00c1) of pitch #21 (F4)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x02f9">
+    <comment>wave period (0x00b6) of pitch #22 (F#4)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x02fb">
+    <comment>wave period (0x00ba) of pitch #23 (G4)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x02fd">
+    <comment>wave period (0x00a1) of pitch #24 (G#4)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x02ff">
+    <comment>wave period (0x0098) of pitch #25 (A4)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x0301">
+    <comment>wave period (0x008f) of pitch #26 (A#4)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x0303">
+    <comment>wave period (0x0087) of pitch #27 (B4)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x0305">
+    <comment>wave period (0x007f) of pitch #28 (C5)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x0307">
+    <comment>wave period (0x0078) of pitch #29 (C#5)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x0309">
+    <comment>wave period (0x0070) of pitch #30 (D5)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x030b">
+    <comment>wave period (0x006a) of pitch #31 (D#5)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x030d">
+    <label>cursor_update</label>
+    <comment>screen editor: update cursor</comment>
+  </at>
+  <at address="0x0321">
+    <label>duration_table</label>
+    <comment>duration code 1: 32th note (#1 time unit)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0322">
+    <comment>duration code 2: 16th note (#2 time units)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0323">
+    <comment>duration code 3: dotted 16th note (#3 time units)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0324">
+    <comment>duration code 4: 8th note (#4 time units)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0325">
+    <comment>duration code 5: dotted 8th note (#6 time units)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0326">
+    <comment>duration code 6: quarter note (#8 time units)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0327">
+    <comment>duration code 7: dotted quarter note (#12 time units)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0328">
+    <comment>duration code 8: half note (#16 time units)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0329">
+    <comment>duration code 9: dotted half note (#24 time units)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x032a">
+    <comment>
+      cout callback before device dispatch<br />
+      (screen/printer/cassette), character in reg. A
+    </comment>
+  </at>
+  <at address="0x033a">
+    <label>entry_cout</label>
+    <comment>
+      entry for cout routine for screen device,<br />
+      character in reg. A
+    </comment>
+  </at>
+  <at address="0x0361">
+    <label>waves_per_time_tbl</label>
+    <comment>0x0a waves per pitch #1 (A2)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0362">
+    <comment>0x0b waves per pitch #2 (A#2)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0363">
+    <comment>0x0c waves per pitch #3 (B2)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0364">
+    <comment>0x0c waves per pitch #4 (C3)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0365">
+    <comment>0x0d waves per pitch #5 (C#3)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0366">
+    <comment>0x0e waves per pitch #6 (D3)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0367">
+    <comment>0x0f waves per pitch #7 (D#3)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0368">
+    <comment>0x0f waves per pitch #8 (E3)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0369">
+    <comment>0x10 waves per pitch #9 (F3)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x036a">
+    <comment>0x11 waves per pitch #10 (F#3)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x036b">
+    <comment>0x12 waves per pitch #11 (G3)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x036c">
+    <comment>0x13 waves per pitch #12 (G#3)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x036d">
+    <comment>0x15 waves per pitch #13 (A3)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x036e">
+    <comment>0x16 waves per pitch #14 (A#3)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x036f">
+    <comment>0x17 waves per pitch #15 (B3)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0370">
+    <comment>0x19 waves per pitch #16 (C4)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0371">
+    <comment>0x1a waves per pitch #17 (C#4)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0372">
+    <comment>0x1c waves per pitch #18 (D4)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0373">
+    <comment>0x1d waves per pitch #19 (D#4)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0374">
+    <comment>0x1f waves per pitch #20 (E4)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0375">
+    <comment>0x21 waves per pitch #21 (F4)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0376">
+    <comment>0x23 waves per pitch #22 (F#4)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0377">
+    <comment>0x25 waves per pitch #23 (G4)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0378">
+    <comment>0x27 waves per pitch #24 (G#4)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0379">
+    <comment>0x29 waves per pitch #25 (A4)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x037a">
+    <comment>0x2c waves per pitch #26 (A#4)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x037b">
+    <comment>0x2e waves per pitch #27 (B4)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x037c">
+    <comment>0x31 waves per pitch #28 (C5)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x037d">
+    <comment>0x34 waves per pitch #29 (C#5)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x037e">
+    <comment>0x35 waves per pitch #30 (D5)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x037f">
+    <comment>0x3a waves per pitch #31 (D#5)</comment>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x0380">
+    <label>txt_ok</label>
+    <data-bytes length="0x04">"OK\r\0"</data-bytes>
+  </at>
+  <at address="0x0384">
+    <label>txt_error</label>
+    <data-bytes length="0x07">"ERROR\r\0"</data-bytes>
+  </at>
+  <at address="0x038b">
+    <label>cout_reset</label>
+    <comment>
+      reset target of character out device to<br />
+      screen display
+    </comment>
+  </at>
+  <at address="0x0394">
+    <label>cout_cr</label>
+    <comment>print carriage return character (0x0d)</comment>
+  </at>
+  <at address="0x039c">
+    <comment>
+      entry for cout routine for print device,<br />
+      character in reg. A
+    </comment>
+  </at>
+  <at address="0x0570">
+    <label>txt_run</label>
+    <data-bytes length="0x04">"RUN\0"</data-bytes>
+  </at>
+  <at address="0x058d">
+    <comment>
+      actual cout routine for print device,<br />
+      character in reg. C
+    </comment>
+  </at>
+  <at address="0x05c4">
+    <comment>
+      query printer status,<br />
+      result in reg. A, bit 0 (0=ready, 1=busy)
+    </comment>
+  </at>
+  <at address="0x0674">
+    <label>init_cbs1</label>
+    <comment>
+      initialize callback vectors
+    </comment>
+  </at>
+  <at address="0x0676">
+    <comment>copy default vectors from ROM</comment>
+  </at>
+  <at address="0x0679">
+    <comment>
+      into cb vector area in RAM<br />
+      at 0x7800..0x7835
+    </comment>
+  </at>
+  <at address="0x067c">
+    <comment>(54 bytes altogether)</comment>
+  </at>
+  <at address="0x0683">
+    <comment>repeat copy 128 times (why???)</comment>
+  </at>
+  <at address="0x0685">
+    <comment>
+      zero-fill the following<br />
+      39 bytes of RAM (0x7836..0x785c)
+    </comment>
+  </at>
+  <at address="0x068e">
+    <comment>
+      check for existence of specific BIOS at<br />
+      addresses 0x4000, 0x6000, 0x8000 to execute
+    </comment>
+  </at>
+  <at address="0x06a0">
+    <comment>
+      specific BIOS not found<br />
+      => go for execution of BASIC interpreter
+    </comment>
+  </at>
+  <at address="0x06a4">
+    <label>magic_test</label>
+    <header>
+      test memory at (HL) for existence of specific BIOS<br />
+      with magic number sequence (0xaa, 0x55, 0xe7, 0x18)<br />
+      and, if found, jump to immediately following address;<br />
+      otherwise, return ordinarily
+    </header>
+    <comment>check for magic first byte (0xaa)</comment>
+  </at>
+  <at address="0x06a9">
+    <comment>check for magic second byte (0x55)</comment>
+  </at>
+  <at address="0x06ad">
+    <comment>check for magic third byte (0xe7)</comment>
+  </at>
+  <at address="0x06b2">
+    <comment>check for magic third byte (0x18)</comment>
+  </at>
+  <at address="0x06b6">
+    <comment>
+      magic check succeeded;<br />
+      prepare and call detected BIOS
+    </comment>
+  </at>
+  <at address="0x06d2">
+    <label>cb_init_vectors1</label>
+    <data-bytes length="0x36" />
+    <header>
+      default data to be copied to<br />
+      vector area 0x7800..0x7835<br />
+      upon system initialization
+    </header>
+  </at>
+  <at address="0x09c2">
+    <label>ld_bc_de</label>
+    <comment>
+      load const values for regs<br />
+      DE and BC from mem, starting at (HL)
+    </comment>
+  </at>
+  <at address="0x09d3">
+    <comment>
+      push subroutine parameters onto stack:<br />
+      DE=source, HL=target, 0x78af=count
+    </comment>
+  </at>
+  <at address="0x0e73">
+    <comment>expression parser: parse number</comment>
+  </at>
+  <at address="0x0e78">
+    <comment>expression parser: negative number sign?</comment>
+  </at>
+  <at address="0x0e7e">
+    <comment>expression parser: positive number sign?</comment>
+  </at>
+  <at address="0x0e83">
+    <comment>parse next character of expression</comment>
+  </at>
+  <at address="0x0e87">
+    <comment>number parser: found decimal point?</comment>
+  </at>
+  <at address="0x0e8c">
+    <comment>number parser: found exponent separator "e"</comment>
+  </at>
+  <at address="0x0e90">
+    <comment>parser: found "%" (int precision)?</comment>
+  </at>
+  <at address="0x0e95">
+    <comment>parser: found "#" (double precision)?</comment>
+  </at>
+  <at address="0x0e9a">
+    <comment>parser: found "!"?</comment>
+  </at>
+  <at address="0x0e9f">
+    <comment>parser: found "d" (double precision)?</comment>
+  </at>
+  <at address="0x0ec7">
+    <comment>number parser: end of number token reached</comment>
+  </at>
+  <at address="0x0ea3">
+    <comment>number parser: handle "d" (double precision)</comment>
+  </at>
+  <at address="0x0ea4">
+    <comment>number parser: handle exponent</comment>
+  </at>
+  <at address="0x0ee4">
+    <comment>number parser: found decimal point</comment>
+  </at>
+  <at address="0x0eee">
+    <comment>number parser: handle "%" (int precision)</comment>
+  </at>
+  <at address="0x0ef5">
+    <comment>number parser: handle "#" (double precision)</comment>
+  </at>
+  <at address="0x0ef6">
+    <comment>number parser: handle "!"</comment>
+  </at>
+  <at address="0x0f29">
+    <comment>number parser: digit found; handle it</comment>
+  </at>
+  <at address="0x0f40">
+    <comment>(DE, HL) &lt;- (HL, 10 * HL)</comment>
+  </at>
+  <at address="0x0f46">
+    <comment>number parser: add next parsed digit to integer value</comment>
+  </at>
+  <at address="0x0f49">
+    <comment>check: number too large to fit in signed integer?</comment>
+  </at>
+  <at address="0x0f4e">
+    <comment>number in range; store it; continue parsing</comment>
+  </at>
+  <at address="0x0f57">
+    <comment>number too large for signed integer</comment>
+  </at>
+  <at address="0x1291">
+    <comment>
+      check for printing group separator "," or<br />
+      decimal separator "." while printing a number
+    </comment>
+  </at>
+  <at address="0x1294">
+    <comment>
+      print number decimal separator "."<br />
+      and prepare printing mantissa
+    </comment>
+  </at>
+  <at address="0x129e">
+    <comment>print number group separator ","</comment>
+  </at>
+  <at address="0x132f">
+    <comment>
+      print integer value stored at<br />
+      0x7921 as decimal
+    </comment>
+  </at>
+  <at address="0x1335">
+    <comment>
+      outer loop for repeated printing of<br />
+      digits until decimal representation of<br />
+      integer is complete
+    </comment>
+  </at>
+  <at address="0x1348">
+    <comment>
+      inner loop for repeated subtraction for<br />
+      determining next decimal digit of integer
+    </comment>
+  </at>
+  <at address="0x13d8">
+    <comment>
+      value 0x2710 (=10000)<br />
+      (used for hex->dec conversion)
+    </comment>
+  </at>
+  <at address="0x13da">
+    <comment>
+      value 0x03e8 (=1000)<br />
+      (used for hex->dec conversion)
+    </comment>
+  </at>
+  <at address="0x13dc">
+    <comment>
+      value 0x0064 (=100)<br />
+      (used for hex->dec conversion)
+    </comment>
+  </at>
+  <at address="0x13de">
+    <comment>
+      value 0x000a (=10)<br />
+      (used for hex->dec conversion)
+    </comment>
+  </at>
+  <at address="0x13e0">
+    <comment>
+      value 0x0001 (=1)<br />
+      (used for hex->dec conversion)
+    </comment>
+  </at>
+  <at address="0x1650">
+    <label>token_tbl</label>
+    <header>
+      ---- START BASIC TOKENS TABLE ----<br />
+      (first character of each token marked by bit 8=1)
+    </header>
+    <comment>token 0x80 "END"</comment>
+    <data-bytes length="0x03">"END"</data-bytes>
+  </at>
+  <at address="0x1653">
+    <comment>token 0x81 "FOR"</comment>
+    <data-bytes length="0x03">"FOR"</data-bytes>
+  </at>
+  <at address="0x1656">
+    <comment>token 0x82 "RESET"</comment>
+    <data-bytes length="0x05">"RESET"</data-bytes>
+  </at>
+  <at address="0x165b">
+    <comment>token 0x83 "SET"</comment>
+    <data-bytes length="0x03">"SET"</data-bytes>
+  </at>
+  <at address="0x165e">
+    <comment>token 0x84 "CLS"</comment>
+    <data-bytes length="0x03">"CLS"</data-bytes>
+  </at>
+  <at address="0x1661">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x03" />
+  </at>
+  <at address="0x1664">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x06" />
+  </at>
+  <at address="0x166a">
+    <comment>token 0x87 "NEXT"</comment>
+    <data-bytes length="0x04">"NEXT"</data-bytes>
+  </at>
+  <at address="0x166e">
+    <comment>token 0x88 "DATA"</comment>
+    <data-bytes length="0x04">"DATA"</data-bytes>
+  </at>
+  <at address="0x1672">
+    <comment>token 0x89 "INPUT"</comment>
+    <data-bytes length="0x05">"INPUT"</data-bytes>
+  </at>
+  <at address="0x1677">
+    <comment>token 0x8a "DIM"</comment>
+    <data-bytes length="0x03">"DIM"</data-bytes>
+  </at>
+  <at address="0x167a">
+    <comment>token 0x8b "READ"</comment>
+    <data-bytes length="0x04">"READ"</data-bytes>
+  </at>
+  <at address="0x167e">
+    <comment>token 0x8c "LET"</comment>
+    <data-bytes length="0x03">"LET"</data-bytes>
+  </at>
+  <at address="0x1681">
+    <comment>token 0x8d "GOTO"</comment>
+    <data-bytes length="0x04">"GOTO"</data-bytes>
+  </at>
+  <at address="0x1685">
+    <comment>token 0x8e "RUN"</comment>
+    <data-bytes length="0x03">"RUN"</data-bytes>
+  </at>
+  <at address="0x1688">
+    <comment>token 0x8f "IF"</comment>
+    <data-bytes length="0x02">"IF"</data-bytes>
+  </at>
+  <at address="0x168a">
+    <comment>token 0x90 "RESTORE"</comment>
+    <data-bytes length="0x07">"RESTORE"</data-bytes>
+  </at>
+  <at address="0x1691">
+    <comment>token 0x91 "GOSUB"</comment>
+    <data-bytes length="0x05">"GOSUB"</data-bytes>
+  </at>
+  <at address="0x1696">
+    <comment>token 0x92 "RETURN"</comment>
+    <data-bytes length="0x06">"RETURN"</data-bytes>
+  </at>
+  <at address="0x169c">
+    <comment>token 0x93 "REM"</comment>
+    <data-bytes length="0x03">"REM"</data-bytes>
+  </at>
+  <at address="0x169f">
+    <comment>token 0x94 "STOP"</comment>
+    <data-bytes length="0x04">"STOP"</data-bytes>
+  </at>
+  <at address="0x16a3">
+    <comment>token 0x95 "ELSE"</comment>
+    <data-bytes length="0x04">"ELSE"</data-bytes>
+  </at>
+  <at address="0x16a7">
+    <comment>token 0x96 "COPY"</comment>
+    <data-bytes length="0x04">"COPY"</data-bytes>
+  </at>
+  <at address="0x16ab">
+    <comment>token 0x97 "COLOR"</comment>
+    <data-bytes length="0x05">"COLOR"</data-bytes>
+  </at>
+  <at address="0x16b0">
+    <comment>token 0x98 "VERIFY"</comment>
+    <data-bytes length="0x06">"VERIFY"</data-bytes>
+  </at>
+  <at address="0x16b6">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x06" />
+  </at>
+  <at address="0x16bc">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x06" />
+  </at>
+  <at address="0x16c2">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x06" />
+  </at>
+  <at address="0x16c8">
+    <comment>token 0x9c "CRUN"</comment>
+    <data-bytes length="0x04">"CRUN"</data-bytes>
+  </at>
+  <at address="0x16cc">
+    <comment>token 0x9d "MODE"</comment>
+    <data-bytes length="0x04">"MODE"</data-bytes>
+  </at>
+  <at address="0x16d0">
+    <comment>token 0x9e "SOUND"</comment>
+    <data-bytes length="0x05">"SOUND"</data-bytes>
+  </at>
+  <at address="0x16d5">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x06" />
+  </at>
+  <at address="0x16db">
+    <comment>token 0xa0 "OUT"</comment>
+    <data-bytes length="0x03">"OUT"</data-bytes>
+  </at>
+  <at address="0x16de">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x16e0">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x04" />
+  </at>
+  <at address="0x16e4">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x05" />
+  </at>
+  <at address="0x16e9">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x03" />
+  </at>
+  <at address="0x16ec">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x03" />
+  </at>
+  <at address="0x16ef">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x05" />
+  </at>
+  <at address="0x16f4">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x04" />
+  </at>
+  <at address="0x16f8">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x05" />
+  </at>
+  <at address="0x16fd">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x04" />
+  </at>
+  <at address="0x1701">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x04" />
+  </at>
+  <at address="0x1705">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x04" />
+  </at>
+  <at address="0x1709">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x04" />
+  </at>
+  <at address="0x170d">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x04" />
+  </at>
+  <at address="0x1711">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x06" />
+  </at>
+  <at address="0x1717">
+    <comment>token 0xaf "LPRINT"</comment>
+    <data-bytes length="0x06">"LPRINT"</data-bytes>
+  </at>
+  <at address="0x171d">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x03" />
+  </at>
+  <at address="0x1720">
+    <comment>token 0xb1 "POKE"</comment>
+    <data-bytes length="0x04">"POKE"</data-bytes>
+  </at>
+  <at address="0x1724">
+    <comment>token 0xb2 "PRINT"</comment>
+    <data-bytes length="0x05">"PRINT"</data-bytes>
+  </at>
+  <at address="0x1729">
+    <comment>token 0xb3 "CONT"</comment>
+    <data-bytes length="0x04">"CONT"</data-bytes>
+  </at>
+  <at address="0x172d">
+    <comment>token 0xb4 "LIST"</comment>
+    <data-bytes length="0x04">"LIST"</data-bytes>
+  </at>
+  <at address="0x1731">
+    <comment>token 0xb5 "LLIST"</comment>
+    <data-bytes length="0x05">"LLIST"</data-bytes>
+  </at>
+  <at address="0x1736">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x06" />
+  </at>
+  <at address="0x173c">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x04" />
+  </at>
+  <at address="0x1740">
+    <comment>token 0xb8 "CLEAR"</comment>
+    <data-bytes length="0x05">"CLEAR"</data-bytes>
+  </at>
+  <at address="0x1745">
+    <comment>token 0xb9 "CLOAD"</comment>
+    <data-bytes length="0x05">"CLOAD"</data-bytes>
+  </at>
+  <at address="0x174a">
+    <comment>token 0xba "CSAVE"</comment>
+    <data-bytes length="0x05">"CSAVE"</data-bytes>
+  </at>
+  <at address="0x174f">
+    <comment>token 0xbb "NEW"</comment>
+    <data-bytes length="0x03">"NEW"</data-bytes>
+  </at>
+  <at address="0x1752">
+    <comment>token 0xbc "TAB("</comment>
+    <data-bytes length="0x04">"TAB("</data-bytes>
+  </at>
+  <at address="0x1756">
+    <comment>token 0xbd "TO"</comment>
+    <data-bytes length="0x02">"TO"</data-bytes>
+  </at>
+  <at address="0x1758">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x175a">
+    <comment>token 0xbf "USING"</comment>
+    <data-bytes length="0x05">"USING"</data-bytes>
+  </at>
+  <at address="0x175f">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x06" />
+  </at>
+  <at address="0x1765">
+    <comment>token 0xc1 "USR"</comment>
+    <data-bytes length="0x03">"USR"</data-bytes>
+  </at>
+  <at address="0x1768">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x03" />
+  </at>
+  <at address="0x176b">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x03" />
+  </at>
+  <at address="0x176e">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x07" />
+  </at>
+  <at address="0x1775">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x05" />
+  </at>
+  <at address="0x177a">
+    <comment>token 0xc6 "POINT"</comment>
+    <data-bytes length="0x05">"POINT"</data-bytes>
+  </at>
+  <at address="0x177f">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x05" />
+  </at>
+  <at address="0x1784">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x03" />
+  </at>
+  <at address="0x1787">
+    <comment>token 0xc9 "INKEY$"</comment>
+    <data-bytes length="0x06">"INKEY$"</data-bytes>
+  </at>
+  <at address="0x178d">
+    <comment>token 0xca "THEN"</comment>
+    <data-bytes length="0x04">"THEN"</data-bytes>
+  </at>
+  <at address="0x1791">
+    <comment>token 0xcb "NOT"</comment>
+    <data-bytes length="0x03">"NOT"</data-bytes>
+  </at>
+  <at address="0x1794">
+    <comment>token 0xcc "STEP"</comment>
+    <data-bytes length="0x04">"STEP"</data-bytes>
+  </at>
+  <at address="0x1798">
+    <comment>token 0xcd "+"</comment>
+    <data-bytes length="0x01">"+"</data-bytes>
+  </at>
+  <at address="0x1799">
+    <comment>token 0xce "-"</comment>
+    <data-bytes length="0x01">"-"</data-bytes>
+  </at>
+  <at address="0x179a">
+    <comment>token 0xcf "*"</comment>
+    <data-bytes length="0x01">"*"</data-bytes>
+  </at>
+  <at address="0x179b">
+    <comment>token 0xd0 "/"</comment>
+    <data-bytes length="0x01">"/"</data-bytes>
+  </at>
+  <at address="0x179c">
+    <comment>token 0xd1 "^"</comment>
+    <data-bytes length="0x01">"^"</data-bytes>
+  </at>
+  <at address="0x179d">
+    <comment>token 0xd2 "AND"</comment>
+    <data-bytes length="0x03">"AND"</data-bytes>
+  </at>
+  <at address="0x17a0">
+    <comment>token 0xd3 "OR"</comment>
+    <data-bytes length="0x02">"OR"</data-bytes>
+  </at>
+  <at address="0x17a2">
+    <comment>token 0xd4 ">"</comment>
+    <data-bytes length="0x01">">"</data-bytes>
+  </at>
+  <at address="0x17a3">
+    <comment>token 0xd5 "="</comment>
+    <data-bytes length="0x01">"="</data-bytes>
+  </at>
+  <at address="0x17a4">
+    <comment>token 0xd6 "&lt;"</comment>
+    <data-bytes length="0x01">"&lt;"</data-bytes>
+  </at>
+  <at address="0x17a5">
+    <comment>token 0xd7 "SGN"</comment>
+    <data-bytes length="0x03">"SGN"</data-bytes>
+  </at>
+  <at address="0x17a8">
+    <comment>token 0xd8 "INT"</comment>
+    <data-bytes length="0x03">"INT"</data-bytes>
+  </at>
+  <at address="0x17ab">
+    <comment>token 0xd9 "ABS"</comment>
+    <data-bytes length="0x03">"ABS"</data-bytes>
+  </at>
+  <at address="0x17ae">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x03" />
+  </at>
+  <at address="0x17b1">
+    <comment>token 0xdb "INP"</comment>
+    <data-bytes length="0x03">"INP"</data-bytes>
+  </at>
+  <at address="0x17b4">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x03" />
+  </at>
+  <at address="0x17b7">
+    <comment>token 0xdd "SQR"</comment>
+    <data-bytes length="0x03">"SQR"</data-bytes>
+  </at>
+  <at address="0x17ba">
+    <comment>token 0xde "RND"</comment>
+    <data-bytes length="0x03">"RND"</data-bytes>
+  </at>
+  <at address="0x17bd">
+    <comment>token 0xdf "LOG"</comment>
+    <data-bytes length="0x03">"LOG"</data-bytes>
+  </at>
+  <at address="0x17c0">
+    <comment>token 0xe0 "EXP"</comment>
+    <data-bytes length="0x03">"EXP"</data-bytes>
+  </at>
+  <at address="0x17c3">
+    <comment>token 0xe1 "COS"</comment>
+    <data-bytes length="0x03">"COS"</data-bytes>
+  </at>
+  <at address="0x17c6">
+    <comment>token 0xe2 "SIN"</comment>
+    <data-bytes length="0x03">"SIN"</data-bytes>
+  </at>
+  <at address="0x17c9">
+    <comment>token 0xe3 "TAN"</comment>
+    <data-bytes length="0x03">"TAN"</data-bytes>
+  </at>
+  <at address="0x17cc">
+    <comment>token 0xe4 "ATN"</comment>
+    <data-bytes length="0x03">"ATN"</data-bytes>
+  </at>
+  <at address="0x17cf">
+    <comment>token 0xe5 "PEEK"</comment>
+    <data-bytes length="0x04">"PEEK"</data-bytes>
+  </at>
+  <at address="0x17d3">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x03" />
+  </at>
+  <at address="0x17d6">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x03" />
+  </at>
+  <at address="0x17d9">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x03" />
+  </at>
+  <at address="0x17dc">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x03" />
+  </at>
+  <at address="0x17df">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x03" />
+  </at>
+  <at address="0x17e2">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x03" />
+  </at>
+  <at address="0x17e5">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x04" />
+  </at>
+  <at address="0x17e9">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x04" />
+  </at>
+  <at address="0x17ed">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x04" />
+  </at>
+  <at address="0x17f1">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x04" />
+  </at>
+  <at address="0x17f5">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x04" />
+  </at>
+  <at address="0x17f9">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x04" />
+  </at>
+  <at address="0x17fd">
+    <comment>reserved for future extensions</comment>
+    <data-bytes length="0x03" />
+  </at>
+  <at address="0x1800">
+    <comment>token 0xf3 "LEN"</comment>
+    <data-bytes length="0x03">"LEN"</data-bytes>
+  </at>
+  <at address="0x1803">
+    <comment>token 0xf4 "STR$"</comment>
+    <data-bytes length="0x04">"STR$"</data-bytes>
+  </at>
+  <at address="0x1807">
+    <comment>token 0xf5 "VAL"</comment>
+    <data-bytes length="0x03">"VAL"</data-bytes>
+  </at>
+  <at address="0x180a">
+    <comment>token 0xf6 "ASC"</comment>
+    <data-bytes length="0x03">"ASC"</data-bytes>
+  </at>
+  <at address="0x180d">
+    <comment>token 0xf7 "CHR$"</comment>
+    <data-bytes length="0x04">"CHR$"</data-bytes>
+  </at>
+  <at address="0x1811">
+    <comment>token 0xf8 "LEFT$"</comment>
+    <data-bytes length="0x05">"LEFT$"</data-bytes>
+  </at>
+  <at address="0x1816">
+    <comment>token 0xf9 "RIGHT$"</comment>
+    <data-bytes length="0x06">"RIGHT$"</data-bytes>
+  </at>
+  <at address="0x181c">
+    <comment>token 0xfa "MID$"</comment>
+    <data-bytes length="0x04">"MID$"</data-bytes>
+  </at>
+  <at address="0x1820">
+    <comment>token "'"</comment>
+    <data-bytes length="0x01">"'"</data-bytes>
+  </at>
+  <at address="0x1821">
+    <comment>table end marker</comment>
+    <footer>---- END BASIC TOKENS TABLE ----</footer>
+    <data-bytes length="0x01" />
+  </at>
+  <at address="0x1822">
+    <label>tbl_tok_hndl</label>
+    <header>
+      ---- START BASIC TOKEN VECTOR TABLE ----<br />
+      for tokens 0x80..0xbb;<br />
+      2 bytes (address LSB, address MSB) per entry
+    </header>
+    <comment>vector to handler for token 0x80 ("END")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1824">
+    <comment>vector to handler for token 0x81 ("FOR")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1826">
+    <comment>vector to handler for token 0x82 ("RESET")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1828">
+    <comment>vector to handler for token 0x83 ("SET")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x182a">
+    <comment>vector to handler for token 0x84 ("CLS")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x182c">
+    <comment>vector to handler for token 0x85 (undefined)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x182e">
+    <comment>vector to handler for token 0x86 (undefined)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1830">
+    <comment>vector to handler for token 0x87 ("NEXT")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1832">
+    <comment>vector to handler for token 0x88 ("DATA")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1834">
+    <comment>vector to handler for token 0x89 ("INPUT")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1836">
+    <comment>vector to handler for token 0x8a ("DIM")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1838">
+    <comment>vector to handler for token 0x8b ("READ")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x183a">
+    <comment>vector to handler for token 0x8c ("LET")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x183c">
+    <comment>vector to handler for token 0x8d ("GOTO")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x183e">
+    <comment>vector to handler for token 0x8e ("RUN")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1840">
+    <comment>vector to handler for token 0x8f ("IF")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1842">
+    <comment>vector to handler for token 0x90 ("RESTORE")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1844">
+    <comment>vector to handler for token 0x91 ("GOSUB")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1846">
+    <comment>vector to handler for token 0x92 ("RETURN")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1848">
+    <comment>vector to handler for token 0x93 ("REM")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x184a">
+    <comment>vector to handler for token 0x94 ("STOP")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x184c">
+    <comment>vector to handler for token 0x95 ("ELSE")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x184e">
+    <comment>vector to handler for token 0x96 ("COPY")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1850">
+    <comment>vector to handler for token 0x97 ("COLOR")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1852">
+    <comment>vector to handler for token 0x98 ("VERIFY")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1854">
+    <comment>vector to handler for token 0x99 (hidden)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1856">
+    <comment>vector to handler for token 0x9a (hidden)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1858">
+    <comment>vector to handler for token 0x9b (hidden)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x185a">
+    <comment>vector to handler for token 0x9c ("CRUN")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x185c">
+    <comment>vector to handler for token 0x9d ("MODE")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x185e">
+    <comment>vector to handler for token 0x9e ("SOUND")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1860">
+    <comment>vector to handler for token 0x9f (hidden)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1862">
+    <comment>vector to handler for token 0xa0 ("OUT")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1864">
+    <comment>vector to handler for token 0xa1 (hidden)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1866">
+    <comment>vector to handler for token 0xa2 (hidden)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1868">
+    <comment>vector to handler for token 0xa3 (hidden)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x186a">
+    <comment>vector to handler for token 0xa4 (hidden)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x186c">
+    <comment>vector to handler for token 0xa5 (hidden)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x186e">
+    <comment>vector to handler for token 0xa6 (hidden)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1870">
+    <comment>vector to handler for token 0xa7 (hidden)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1872">
+    <comment>vector to handler for token 0xa8 (hidden)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1874">
+    <comment>vector to handler for token 0xa9 (hidden)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1876">
+    <comment>vector to handler for token 0xaa (hidden)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1878">
+    <comment>vector to handler for token 0xab (hidden)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x187a">
+    <comment>vector to handler for token 0xac (hidden)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x187c">
+    <comment>vector to handler for token 0xad (hidden)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x187e">
+    <comment>
+      vector to handler for token 0xae<br />
+      (hidden, equals cold reset)
+    </comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1880">
+    <comment>vector to handler for token 0xaf ("LPRINT")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1882">
+    <comment>vector to handler for token 0xb0 (hidden)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1884">
+    <comment>vector to handler for token 0xb1 ("POKE")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1886">
+    <comment>vector to handler for token 0xb2 ("PRINT")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1888">
+    <comment>vector to handler for token 0xb3 ("CONT")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x188a">
+    <comment>vector to handler for token 0xb4 ("LIST")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x188c">
+    <comment>vector to handler for token 0xb5 ("LLIST")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x188e">
+    <comment>vector to handler for token 0xb6 (hidden)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1890">
+    <comment>vector to handler for token 0xb7 (hidden)</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1892">
+    <comment>vector to handler for token 0xb8 ("CLEAR")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1894">
+    <comment>vector to handler for token 0xb9 ("CLOAD")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1896">
+    <comment>vector to handler for token 0xba ("CSAVE")</comment>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x1898">
+    <comment>vector to handler for token 0xbb ("NEW")</comment>
+    <footer>---- END BASIC TOKEN VECTOR TABLE ----</footer>
+    <data-bytes length="0x02" />
+  </at>
+  <at address="0x18f7">
+    <label>cb_init_vectors2</label>
+    <data-bytes length="0x26" />
+    <header>
+      default data to be copied to<br />
+      vector area 0x7880..0x78a5<br />
+      upon system initialization
+    </header>
+  </at>
+  <at address="0x191d">
+    <label>txt_suffix_error</label>
+    <comment>" ERROR\0" (appended to error messages)</comment>
+    <data-bytes length="0x07" />
+  </at>
+  <at address="0x1924">
+    <label>txt_suffix_inr</label>
+    <comment>
+      appended to error message when<br />
+      line number available
+    </comment>
+    <data-bytes length="0x05">" IN \0"</data-bytes>
+  </at>
+  <at address="0x1929">
+    <label>txt_ready</label>
+    <data-bytes length="0x07">"READY\r\0"</data-bytes>
+  </at>
+  <at address="0x1930">
+    <label>txt_break</label>
+    <data-bytes length="0x06">"BREAK\0"</data-bytes>
+  </at>
+  <at address="0x19e5">
+    <label>emit_err</label>
+    <comment>
+      error code in reg E<br />
+      flush output
+    </comment>
+  </at>
+  <at address="0x19e9">
+    <comment>start of error messages table</comment>
+  </at>
+  <at address="0x19ec">
+    <comment>error messages callback</comment>
+  </at>
+  <at address="0x19f0">
+    <comment>start err message with "?" char</comment>
+  </at>
+  <at address="0x19f5">
+    <comment>print err message text</comment>
+  </at>
+  <at address="0x19fe">
+    <comment>finish err message with " ERROR"</comment>
+  </at>
+  <at address="0x1a19">
+    <label>basic_entry</label>
+    <header>---- BASIC main entry ----</header>
+  </at>
+  <at address="0x1a25">
+    <comment>pointer to message "READY"</comment>
+  </at>
+  <at address="0x1b1e">
+    <data-bytes length="0x01">0xce</data-bytes>
+    <comment>"N" with bit 8=1</comment>
+  </at>
+  <at address="0x1b49">
+    <label>cmd_new</label>
+    <comment>handler for token 0xbb ("NEW")</comment>
+  </at>
+  <at address="0x1b4d">
+    <label>cmd_new2</label>
+    <comment>perform actual "NEW" after prior "CLS"</comment>
+  </at>
+  <at address="0x1c90">
+    <label>rst18_impl</label>
+    <header>
+      ---- implementation of RST 18H ----<br />
+      Compare unsigned DE &amp; HL register pairs<br />
+      Result:<br />
+      * HL &lt; DE => C=1<br />
+      * HL >= DE => C=0<br />
+      * HL != DE => Z=0<br />
+      * HL == DE => Z=1
+    </header>
+  </at>
+  <at address="0x1c96">
+    <label>rst08_impl</label>
+    <header>
+      ---- implementation of RST 08H ----<br />
+      parse token char<br />
+      * HL points to current char of string to check.<br />
+      * The expected char to be parsed is fetched from<br />
+      memory location immediately following the RST command.<br />
+      * On failure, jump to routine that prints "?syntax error"<br />
+      and continues editing.<br />
+      * On success, control flow will return to two bytes after<br />
+      previous RST 08H command (such as to skip the char data<br />
+      byte to be compared).
+    </header>
+  </at>
+  <at address="0x1ca1">
+    <label>cmd_for</label>
+    <comment>handler for token 0x81 ("FOR")</comment>
+  </at>
+  <at address="0x1cc6">
+    <data-bytes length="0x01">0xbd</data-bytes>
+    <comment>"=" with bit 8=1</comment>
+  </at>
+  <at address="0x1d60">
+    <comment>token byte or char?</comment>
+  </at>
+  <at address="0x1d62">
+    <comment>char => got LHS of variable assignment</comment>
+  </at>
+  <at address="0x1d65">
+    <label>parse_tok</label>
+    <comment>
+      token >= 0xbc?<br />
+      (token vector table valid only for tokens 0x80..0xbb)
+    </comment>
+  </at>
+  <at address="0x1d67">
+    <comment>yes => handle other token, not in token vector list</comment>
+  </at>
+  <at address="0x1d6a">
+    <label>parse_tok1</label>
+    <comment>token table offset := 2 * (token value - 0x80)</comment>
+  </at>
+  <at address="0x1d6e">
+    <comment>tmp save HL</comment>
+  </at>
+  <at address="0x1d6f">
+    <comment>start address of token table,</comment>
+  </at>
+  <at address="0x1d72">
+    <comment>plus table offset for token</comment>
+  </at>
+  <at address="0x1d73">
+    <comment>token vector LSB</comment>
+  </at>
+  <at address="0x1d75">
+    <comment>token vector MSB</comment>
+  </at>
+  <at address="0x1d76">
+    <comment>for use as dst addr upon next RET</comment>
+  </at>
+  <at address="0x1d77">
+    <comment>restore tmp'ly saved HL</comment>
+  </at>
+  <at address="0x1d78">
+    <label>rst10_impl</label>
+    <header>
+      ---- START implementation of RST 10H ----<br />
+      Look ahead next character in parse input<br />
+      (BASIC parser)<br />
+      * if char is higher than the digit "9",<br />
+      &nbsp; then return with C=0,<br />
+      * else if char is any of white space (20h),<br />
+      &nbsp; tab (09h) or LF (0ah), then skip that char<br />
+      &nbsp; and try again with next char,<br />
+      * else set C=1 if and only if char is a digit<br />
+      &nbsp; and set Z=1 if and only if char is 0<br />
+      &nbsp; and set S=0<br />
+      &nbsp; and set H=1 if and only if (char &amp; 0fh)=0fh<br />
+      &nbsp; and set P=1 if char contains even # of 1s<br />
+      &nbsp; and set N=1<br />
+      <br />
+      * HL points to previous char<br />
+      * skip 09h and 0bh<br />
+      * return char in register A<br />
+      * return C=0 if alphabetic char<br />
+      * return C=1 if alphanumeric char
+    </header>
+  </at>
+  <at address="0x1d7d">
+    <comment>char is ' '?</comment>
+  </at>
+  <at address="0x1d90">
+    <footer>---- END implementation of RST 10H ----</footer>
+  </at>
+  <at address="0x1d91">
+    <label>cmd_restore</label>
+    <comment>handler for token 0x90 ("RESTORE")</comment>
+  </at>
+  <at address="0x1da9">
+    <label>cmd_stop</label>
+    <comment>handler for token 0x94 ("STOP")</comment>
+  </at>
+  <at address="0x1dae">
+    <label>cmd_end</label>
+    <comment>handler for token 0x80 ("END")</comment>
+  </at>
+  <at address="0x1de4">
+    <label>cmd_cont</label>
+    <comment>handler for token 0xb3 ("CONT")</comment>
+  </at>
+  <at address="0x1df8">
+    <label>trace_off</label>
+    <comment>turn off BASIC tracing</comment>
+  </at>
+  <at address="0x1e03">
+    <label>cmd_0x99</label>
+    <comment>handler for token 0x99 (hidden)</comment>
+  </at>
+  <at address="0x1e06">
+    <label>cmd_0x9a</label>
+    <comment>handler for token 0x9a (hidden)</comment>
+  </at>
+  <at address="0x1e09">
+    <label>cmd_0x9b</label>
+    <comment>handler for token 0x9b (hidden)</comment>
+  </at>
+  <at address="0x1e4a">
+    <label>err_fct_code</label>
+    <comment>generate error "FUNCTION CODE ERROR"</comment>
+  </at>
+  <at address="0x1e7a">
+    <label>cmd_clear</label>
+    <comment>handler for token 0xb8 ("CLEAR")</comment>
+  </at>
+  <at address="0x1ea3">
+    <label>cmd_run</label>
+    <comment>handler for token 0x8e ("RUN")</comment>
+  </at>
+  <at address="0x1eb1">
+    <label>cmd_gosub</label>
+    <comment>handler for token 0x91 ("GOSUB")</comment>
+  </at>
+  <at address="0x1ec2">
+    <label>cmd_goto</label>
+    <comment>handler for token 0x8d ("GOTO")</comment>
+  </at>
+  <at address="0x1ede">
+    <label>cmd_return</label>
+    <comment>handler for token 0x92 ("RETURN")</comment>
+  </at>
+  <at address="0x1f05">
+    <label>cmd_data</label>
+    <comment>handler for token 0x88 ("DATA")</comment>
+  </at>
+  <at address="0x1f07">
+    <label>cmd_rem_else</label>
+    <comment>
+      handler for token 0x93 ("REM")<br />
+      handler for token 0x95 ("ELSE")
+    </comment>
+  </at>
+  <at address="0x1f21">
+    <label>cmd_let</label>
+    <comment>handler for token 0x8c ("LET")</comment>
+  </at>
+  <at address="0x1f25">
+    <data-bytes length="0x01">0xd5</data-bytes>
+    <comment>"U" with bit 8=1</comment>
+  </at>
+  <at address="0x1f6c">
+    <label>cmd_0xa1</label>
+    <comment>handler for token 0xa1 (hidden)</comment>
+  </at>
+  <at address="0x1f72">
+    <data-bytes length="0x01">0x8d</data-bytes>
+    <comment>CR with bit 8=1</comment>
+  </at>
+  <at address="0x1f9f">
+    <data-bytes length="0x01">0x8d</data-bytes>
+    <comment>CR with bit 8=1</comment>
+  </at>
+  <at address="0x1faf">
+    <label>cmd_0x9f</label>
+    <comment>handler for token 0x9f (hidden)</comment>
+  </at>
+  <at address="0x2008">
+    <label>cmd_0xb7</label>
+    <comment>handler for token 0xb7 (hidden)</comment>
+  </at>
+  <at address="0x2017">
+    <data-bytes length="0x01">","</data-bytes>
+    <comment>comma separator</comment>
+  </at>
+  <at address="0x2039">
+    <label>cmd_if</label>
+    <comment>handler for token 0x8f ("IF")</comment>
+  </at>
+  <at address="0x2067">
+    <label>cmd_lprint</label>
+    <comment>handler for token 0xaf ("LPRINT")</comment>
+  </at>
+  <at address="0x206f">
+    <label>cmd_print</label>
+    <comment>handler for token 0xb2 ("PRINT")</comment>
+  </at>
+  <at address="0x2072">
+    <comment>"PRINT @"?</comment>
+  </at>
+  <at address="0x2076">
+    <comment>
+      parse "x" in "PRINT @x,y"<br />
+      (positional print)
+    </comment>
+  </at>
+  <at address="0x2079">
+    <comment>got valid params?</comment>
+  </at>
+  <at address="0x207e">
+    <comment>compute screen address from x,y</comment>
+  </at>
+  <at address="0x207f">
+    <comment>screen base address</comment>
+  </at>
+  <at address="0x2083">
+    <comment>put cursor to target position</comment>
+  </at>
+  <at address="0x2086">
+    <comment>update cursor x position</comment>
+  </at>
+  <at address="0x208d">
+    <comment>parse "," in "PRINT @x,y"</comment>
+  </at>
+  <at address="0x208e">
+    <data-bytes length="0x01">","</data-bytes>
+    <comment>comma separator</comment>
+  </at>
+  <at address="0x208f">
+    <comment>"PRINT #"?</comment>
+  </at>
+  <at address="0x2093">
+    <comment>handle "PRINT #" (print to file)</comment>
+  </at>
+  <at address="0x2096">
+    <comment>redirect output onto cassette recorder</comment>
+  </at>
+  <at address="0x209b">
+    <label>prt_any_trgt</label>
+    <comment>handle "PRINT" to cout_target</comment>
+  </at>
+  <at address="0x213e">
+    <data-bytes length="0x01">")"</data-bytes>
+    <comment>right parenthesis</comment>
+  </at>
+  <at address="0x2169">
+    <label>cout_screen</label>
+    <comment>
+      select screen as current<br />
+      character output device
+    </comment>
+  </at>
+  <at address="0x2178">
+    <label>txt_redo</label>
+    <data-bytes length="0x07">"?REDO\r\0"</data-bytes>
+  </at>
+  <at address="0x219a">
+    <label>cmd_input</label>
+    <comment>handler for token 0x89 ("INPUT")</comment>
+  </at>
+  <at address="0x21d5">
+    <data-bytes length="0x01">";"</data-bytes>
+    <comment>semicolon separator</comment>
+  </at>
+  <at address="0x21ef">
+    <label>cmd_read</label>
+    <comment>handler for token 0x8b ("READ")</comment>
+  </at>
+  <at address="0x21fc">
+    <data-bytes length="0x01">","</data-bytes>
+    <comment>comma separator</comment>
+  </at>
+  <at address="0x22b6">
+    <label>cmd_next</label>
+    <comment>handler for token 0x87 ("NEXT")</comment>
+  </at>
+  <at address="0x2286">
+    <label>txt_extra_ignored</label>
+    <data-bytes length="0x10">"?EXTRA IGNORED\r\0"</data-bytes>
+  </at>
+  <at address="0x2336">
+    <data-bytes length="0x01">"("</data-bytes>
+    <comment>left parenthesis</comment>
+  </at>
+  <at address="0x24ed">
+    <data-bytes length="0x01">"("</data-bytes>
+    <comment>left parenthesis</comment>
+  </at>
+  <at address="0x24f2">
+    <data-bytes length="0x01">")"</data-bytes>
+    <comment>right parenthesis</comment>
+  </at>
+  <at address="0x2530">
+    <data-bytes length="0x01">")"</data-bytes>
+    <comment>right parenthesis</comment>
+  </at>
+  <at address="0x255d">
+    <data-bytes length="0x01">","</data-bytes>
+    <comment>comma separator</comment>
+  </at>
+  <at address="0x2607">
+    <data-bytes length="0x01">","</data-bytes>
+    <comment>comma separator</comment>
+  </at>
+  <at address="0x25d9">
+    <label>rst20_impl</label>
+    <header>
+      ---- START implementation of RST 20H ----<br />
+      Return the number of parameters to be<br />
+      copied for a subroutine call minus 3,<br />
+      and set the C flag if the returned<br />
+      number is smaller than 5
+    </header>
+  </at>
+  <at address="0x25e8">
+    <footer>---- END implementation of RST 20H ----</footer>
+  </at>
+  <at address="0x2608">
+    <label>cmd_dim</label>
+    <comment>handler for token 0x8a ("DIM")</comment>
+  </at>
+  <at address="0x2702">
+    <data-bytes length="0x01">")"</data-bytes>
+    <comment>right parenthesis</comment>
+  </at>
+  <at address="0x28a7">
+    <label>str_print</label>
+    <comment>
+      Print \0-terminated<br />
+      String with special handling for<br />
+      surrounding quote characters<br />
+      Parameters: HL = start address of<br />
+      string
+    </comment>
+  </at>
+  <at address="0x2a31">
+    <data-bytes length="0x01">"("</data-bytes>
+    <comment>left parenthesis</comment>
+  </at>
+  <at address="0x2a37">
+    <data-bytes length="0x01">","</data-bytes>
+    <comment>comma separator</comment>
+  </at>
+  <at address="0x2a3c">
+    <data-bytes length="0x01">")"</data-bytes>
+    <comment>right parenthesis</comment>
+  </at>
+  <at address="0x2aac">
+    <data-bytes length="0x01">","</data-bytes>
+    <comment>comma separator</comment>
+  </at>
+  <at address="0x2ab1">
+    <data-bytes length="0x01">")"</data-bytes>
+    <comment>right parenthesis</comment>
+  </at>
+  <at address="0x2ae1">
+    <data-bytes length="0x01">")"</data-bytes>
+    <comment>right parenthesis</comment>
+  </at>
+  <at address="0x2ae7">
+    <label>parse_tok2</label>
+    <comment>parse token not in token vector list</comment>
+  </at>
+  <at address="0x2aec">
+    <label>handle_tok_0xfa</label>
+  </at>
+  <at address="0x2ae9">
+    <comment>no => other token</comment>
+  </at>
+  <at address="0x2afb">
+    <label>cmd_out</label>
+    <comment>handler for token 0xa0 ("OUT")</comment>
+  </at>
+  <at address="0x2b18">
+    <data-bytes length="0x01">","</data-bytes>
+    <comment>comma separator</comment>
+  </at>
+  <at address="0x2b1c">
+    <label>parse_byte</label>
+    <comment>parse a value in the range 0..255</comment>
+  </at>
+  <at address="0x2b29">
+    <label>cmd_llist</label>
+    <comment>handler for token 0xb5 ("LLIST")</comment>
+  </at>
+  <at address="0x2b2e">
+    <label>cmd_list</label>
+    <comment>handler for token 0xb4 ("LIST")</comment>
+  </at>
+  <at address="0x2bc6">
+    <label>cmd_cl0xb6</label>
+    <comment>handler for token 0xb6 (hidden)</comment>
+  </at>
+  <at address="0x2bf5">
+    <label>cmd_sound</label>
+    <comment>parse sound pitch</comment>
+  </at>
+  <at address="0x2bf8">
+    <comment>pitch &lt; 32?</comment>
+  </at>
+  <at address="0x2bfa">
+    <comment>no => exit with function code error</comment>
+  </at>
+  <at address="0x2bfd">
+    <comment>save pitch</comment>
+  </at>
+  <at address="0x2c00">
+    <comment>parser: consume ","</comment>
+  </at>
+  <at address="0x2c01">
+    <data-bytes length="0x01">","</data-bytes>
+    <comment>comma separator</comment>
+  </at>
+  <at address="0x2c02">
+    <comment>parse sound duration</comment>
+  </at>
+  <at address="0x2c05">
+    <comment>duration == 0?</comment>
+  </at>
+  <at address="0x2c06">
+    <comment>yes => exit with function code error</comment>
+  </at>
+  <at address="0x2c09">
+    <comment>duration &lt; 10?</comment>
+  </at>
+  <at address="0x2c0b">
+    <comment>no => exit with function code error</comment>
+  </at>
+  <at address="0x2c0e">
+    <comment>for continuous sound, disable IRQs</comment>
+  </at>
+  <at address="0x2c10">
+    <comment>index to duration[0..9]</comment>
+  </at>
+  <at address="0x2c11">
+    <comment>save index</comment>
+  </at>
+  <at address="0x2c12">
+    <comment>load sound pitch</comment>
+  </at>
+  <at address="0x2c15">
+    <comment>pitch == 0?</comment>
+  </at>
+  <at address="0x2c16">
+    <comment>yes => pause</comment>
+  </at>
+  <at address="0x2c18">
+    <comment>pitch to index (0..30)</comment>
+  </at>
+  <at address="0x2c19">
+    <comment>*2 for index into table of shorts</comment>
+  </at>
+  <at address="0x2c1b">
+    <comment>index into BC</comment>
+  </at>
+  <at address="0x2c1f">
+    <comment>base address of pitch table</comment>
+  </at>
+  <at address="0x2c22">
+    <comment>add index for entry in that table</comment>
+  </at>
+  <at address="0x2c23">
+    <comment>load wave period into DE</comment>
+  </at>
+  <at address="0x2c26">
+    <comment>save wave period</comment>
+  </at>
+  <at address="0x2c27">
+    <comment>base address of waves per time table</comment>
+  </at>
+  <at address="0x2c2c">
+    <comment>add index for entry in that table</comment>
+  </at>
+  <at address="0x2c2d">
+    <comment>load waves per time into DE</comment>
+  </at>
+  <at address="0x2c2a">
+    <comment>*1 for index into table of waves per time</comment>
+  </at>
+  <at address="0x2c30">
+    <comment>base address of duration table</comment>
+  </at>
+  <at address="0x2c33">
+    <comment>add index for entry in that table</comment>
+  </at>
+  <at address="0x2c35">
+    <comment>load time units into B</comment>
+  </at>
+  <at address="0x2c36">
+    <comment>HL := DE</comment>
+  </at>
+  <at address="0x2c38">
+    <comment>HL += B * DE</comment>
+  </at>
+  <at address="0x2c3b">
+    <comment>BC := HL</comment>
+  </at>
+  <at address="0x2c3e">
+    <label>next_wave_period</label>
+  </at>
+  <at address="0x2c41">
+    <comment>load current I/O mask</comment>
+  </at>
+  <at address="0x2c4d">
+    <label>finish_note</label>
+  </at>
+  <at address="0x2c4e">
+    <comment>end of current sound: enable IRQs again</comment>
+  </at>
+  <at address="0x2c4f">
+    <comment>get next input char, if any</comment>
+  </at>
+  <at address="0x2c51">
+    <comment>found ";"?</comment>
+  </at>
+  <at address="0x2c53">
+    <comment>yes => next note</comment>
+  </at>
+  <at address="0x2c58">
+    <label>snd_handle_rest</label>
+    <comment>execute pause ("SOUND 0,x")</comment>
+  </at>
+  <at address="0x2c5c">
+    <comment>base address of duration table</comment>
+  </at>
+  <at address="0x2c5f">
+    <comment>add index for entry in that table</comment>
+  </at>
+  <at address="0x2c60">
+    <comment>load time units into B</comment>
+  </at>
+  <at address="0x2c61">
+    <comment>duration scale: #loops per time unit</comment>
+  </at>
+  <at address="0x2c64">
+    <comment>DE := HL</comment>
+  </at>
+  <at address="0x2c66">
+    <comment>HL += B * DE</comment>
+  </at>
+  <at address="0x2c67">
+    <comment>loop #(duration scale * time units) times</comment>
+  </at>
+  <at address="0x2c69">
+    <label>next_rest_period</label>
+  </at>
+  <at address="0x2c6d">
+    <comment>HL == 0?</comment>
+  </at>
+  <at address="0x2c71">
+    <comment>done with rest</comment>
+  </at>
+  <at address="0x2cb1">
+    <label>cmd_poke</label>
+    <comment>handler for token 0xb1 ("POKE")</comment>
+  </at>
+  <at address="0x2cb6">
+    <data-bytes length="0x01">","</data-bytes>
+    <comment>comma separator</comment>
+  </at>
+  <at address="0x2cb7">
+    <comment>parse value</comment>
+  </at>
+  <at address="0x2cbb">
+    <comment>poke value</comment>
+  </at>
+  <at address="0x2cc4">
+    <data-bytes length="0x01">";"</data-bytes>
+    <comment>semicolon separator</comment>
+  </at>
+  <at address="0x2e63">
+    <label>cmd_mode</label>
+    <comment>handler for token 0x9d ("MODE")</comment>
+  </at>
+  <at address="0x2e64">
+    <data-bytes length="0x01">"("</data-bytes>
+    <comment>left parenthesis</comment>
+  </at>
+  <at address="0x2e68">
+    <comment>mode 0 (text mode)?</comment>
+  </at>
+  <at address="0x2e6b">
+    <comment>(A == 1)?</comment>
+  </at>
+  <at address="0x2e6e">
+    <comment>invalid mode parameter</comment>
+  </at>
+  <at address="0x2e71">
+    <label>mode_1</label>
+    <comment>
+      graphics mode: use zero bytes for<br />
+      clearing screen
+    </comment>
+  </at>
+  <at address="0x2e73">
+    <comment>set graphics bit on output latch shadow value</comment>
+  </at>
+  <at address="0x2e76">
+    <comment>update mask for graphics mode</comment>
+  </at>
+  <at address="0x2e7d">
+    <label>mode_0</label>
+    <comment>text mode: clear screen with " " chars</comment>
+  </at>
+  <at address="0x2e7f">
+    <comment>clear graphics bit on output latch shadow value</comment>
+  </at>
+  <at address="0x2e82">
+    <comment>update mask for text mode</comment>
+  </at>
+  <at address="0x2e87">
+    <label>mode_switch</label>
+    <comment>update output latch</comment>
+  </at>
+  <at address="0x2e8b">
+    <comment>video mem base addr</comment>
+  </at>
+  <at address="0x2e8e">
+    <comment>2k of video memory</comment>
+  </at>
+  <at address="0x2e91">
+    <label>scr_next_byte_clear</label>
+  </at>
+  <at address="0x2e92">
+    <comment>clear next screen byte</comment>
+  </at>
+  <at address="0x2e95">
+    <comment>BC &lt;&gt; 0?</comment>
+  </at>
+  <at address="0x2e97">
+    <comment>no: continue with next byte</comment>
+  </at>
+  <at address="0x2e9a">
+    <comment>consume closing ")"</comment>
+  </at>
+  <at address="0x2e9b">
+    <data-bytes length="0x01">")"</data-bytes>
+    <comment>right parenthesis</comment>
+  </at>
+  <at address="0x2eb8">
+    <label>rst38_impl</label>
+    <header>---- START implementation of RST 38H ----</header>
+    <comment>
+      IRQ handler for key press / kbd matrix scan
+    </comment>
+  </at>
+  <at address="0x2edb">
+    <footer>---- END implementation of RST 38H ----</footer>
+  </at>
+  <at address="0x2ef4">
+    <label>kbd_scan</label>
+    <comment>do single kbd matrix scan</comment>
+  </at>
+  <at address="0x301d">
+    <comment>
+      screen editor: check for key press &amp;<br />
+      handle key press (e.g. edit current line)
+    </comment>
+  </at>
+  <at address="0x3039">
+    <label>cout1</label>
+  </at>
+  <at address="0x307c">
+    <label>cout2</label>
+  </at>
+  <at address="0x3082">
+    <label>cout3</label>
+  </at>
+  <at address="0x308b">
+    <label>cout</label>
+    <comment>
+      character out main entry<br />
+      switch to MODE(0) if in MODE(1)<br />
+      mark char in reg A for output in<br />
+      screen buffer
+    </comment>
+  </at>
+  <at address="0x30aa">
+    <label>cout_mode0</label>
+    <comment>now sure that in MODE(0)</comment>
+  </at>
+  <at address="0x30b8">
+    <label>cout_ctrl</label>
+    <comment>
+      CTRL char => wait until<br />
+      screen print buffer is empty
+    </comment>
+  </at>
+  <at address="0x30c0">
+    <label>cout_buf_write</label>
+    <header>
+      ---- START critical section ----<br />
+      put char into screen print buffer<br />
+      after that wait until IRQ has consumed the buffer
+    </header>
+  </at>
+  <at address="0x30d6">
+    <footer>---- END critical section ----</footer>
+  </at>
+  <at address="0x30e8">
+    <label>irq_scr_buf_cpy</label>
+    <header>
+      ---- START IRQ Handler Screen Buffer Copy ----<br />
+      copy screen buffer chars to video RAM and clear the buffer
+    </header>
+  </at>
+  <at address="0x3105">
+    <footer>---- END IRQ Handler Screen Buffer Copy ----</footer>
+  </at>
+  <at address="0x315a">
+    <label>kbdin</label>
+    <comment>
+      screen editor: handle key press<br />
+      (e.g. edit current line)
+    </comment>
+  </at>
+  <at address="0x31b8">
+    <label>cursor_right</label>
+    <comment>
+      CHR$(9) / CHR$(25):<br />
+      move cursor one column to the right
+    </comment>
+  </at>
+  <at address="0x314d">
+    <comment>
+      strip off char color
+    </comment>
+  </at>
+  <at address="0x3153">
+    <comment>
+      set char color
+    </comment>
+  </at>
+  <at address="0x31f1">
+    <label>cursor_cr</label>
+  </at>
+  <at address="0x31f5">
+    <comment>
+      inc cursor addr
+    </comment>
+  </at>
+  <at address="0x31fc">
+    <comment>
+      new cursor pos beyond screen?
+    </comment>
+  </at>
+  <at address="0x3227">
+    <label>cursor_left</label>
+    <comment>
+      CHR$(8) / CHR$(24):<br />
+      move cursor one column to the left
+    </comment>
+  </at>
+  <at address="0x3253">
+    <label>cursor_up</label>
+    <comment>
+      CHR$(27):<br />
+      move cursor one line up
+    </comment>
+  </at>
+  <at address="0x326d">
+    <label>cursor_down</label>
+    <comment>
+      CHR$(10):<br />
+      move cursor one line down
+    </comment>
+  </at>
+  <at address="0x3287">
+    <label>cursor_home</label>
+    <comment>
+      CHR$(28):<br />
+      move cursor to left upper corner
+    </comment>
+  </at>
+  <at address="0x3292">
+    <label>cout_ff</label>
+    <comment>
+      CHR$(31):<br />
+      form feed (clear screen)
+    </comment>
+  </at>
+  <at address="0x32b4">
+    <label>cout_cr</label>
+    <comment>
+      CHR$(29):<br />
+      carriage return
+    </comment>
+  </at>
+  <at address="0x32c6">
+    <label>cout_ins</label>
+    <comment>
+      CHR$(21):<br />
+      insert character
+    </comment>
+  </at>
+  <at address="0x332c">
+    <label>cursor_bottom</label>
+    <comment>
+      move cursor to first column of<br />
+      bottom line
+    </comment>
+  </at>
+  <at address="0x33cb">
+    <label>cout_del</label>
+    <comment>
+      CHR$(127):<br />
+      rubout character
+    </comment>
+  </at>
+  <at address="0x33f3">
+    <label>scrn_scroll</label>
+    <comment>scroll screen by one line</comment>
+  </at>
+  <at address="0x3450">
+    <label>beep</label>
+    <comment>generate key press click sound</comment>
+  </at>
+  <at address="0x345c">
+    <label>sound</label>
+    <comment>generate sound</comment>
+  </at>
+  <at address="0x3469">
+    <label>wave_period</label>
+    <comment>save BC on enter</comment>
+  </at>
+  <at address="0x346a">
+    <comment>I/O mask value with</comment>
+  </at>
+  <at address="0x346b">
+    <comment>speaker excited</comment>
+  </at>
+  <at address="0x346d">
+    <comment>update speaker elongation</comment>
+  </at>
+  <at address="0x3470">
+    <comment>BC := HL</comment>
+  </at>
+  <at address="0x3472">
+    <label>loop_phase1</label>
+  </at>
+  <at address="0x3473">
+    <comment>BC == 0?</comment>
+  </at>
+  <at address="0x3475">
+    <comment>no => continue loop</comment>
+  </at>
+  <at address="0x3477">
+    <comment>
+      I/O mask value with<br />
+      speaker in idle state again
+    </comment>
+  </at>
+  <at address="0x3478">
+    <comment>update speaker elongation</comment>
+  </at>
+  <at address="0x347b">
+    <comment>BC := HL</comment>
+  </at>
+  <at address="0x347d">
+    <label>loop_phase2</label>
+  </at>
+  <at address="0x347e">
+    <comment>BC == 0?</comment>
+  </at>
+  <at address="0x3480">
+    <comment>no => continue loop</comment>
+  </at>
+  <at address="0x3482">
+    <comment>restore BC on exit</comment>
+  </at>
+  <at address="0x34a9">
+    <label>cmd_csave</label>
+    <header>
+      ---- START cmd_save: write programm file to cassette ----<br />
+      * file_header (cp. cass_wrt_hdr at 0x3558)<br />
+      * #0x19a extra gap allows reader to process file name<br />
+      * LSB of prgmem_start<br />
+      * MSB of prgmem_start<br />
+      * LSB of vlt_start<br />
+      * MSB of vlt_start<br />
+      * prg code as sequence of bytes<br />
+      * LSB of check sum<br />
+      * MSB of check sum<br />
+      * 20 × lead out value "0"<br />
+      <br />
+      check sum includes all written bytes from<br />
+      prgmem_start to last byte of<br />
+      program code sequence
+    </header>
+    <comment>handler for token 0xba ("CSAVE")</comment>
+  </at>
+  <at address="0x34aa">
+    <comment>code 0xf0 for BASIC programm data</comment>
+  </at>
+  <at address="0x34af">
+    <comment>abort, if "BREAK"ed</comment>
+  </at>
+  <at address="0x34b3">
+    <comment>
+      wait #0x19a extra gap; useful<br />
+      as extra time window when loading<br />
+      in the data again
+    </comment>
+  </at>
+  <at address="0x34b6">
+    <label>csave_wait</label>
+  </at>
+  <at address="0x34be">
+    <comment>set up pointer to 16 bit check sum</comment>
+  </at>
+  <at address="0x34c6">
+    <comment>cout LSB of prgmem_start</comment>
+  </at>
+  <at address="0x34c9">
+    <comment>
+      use LSB of prg mem start as<br />
+      initial check sum value
+    </comment>
+  </at>
+  <at address="0x34cc">
+    <comment>and zero MSB</comment>
+  </at>
+  <at address="0x34d1">
+    <comment>cout MSB of prgmem_start</comment>
+  </at>
+  <at address="0x34d4">
+    <comment>add MSB of prg mem start to check sum</comment>
+  </at>
+  <at address="0x34db">
+    <comment>cout LSB of vlt_start</comment>
+  </at>
+  <at address="0x34df">
+    <comment>and add to check sum</comment>
+  </at>
+  <at address="0x34e2">
+    <comment>cout MSB of vlt_start</comment>
+  </at>
+  <at address="0x34e6">
+    <comment>and add to check sum</comment>
+  </at>
+  <at address="0x34ec">
+    <label>csave_prg_next</label>
+    <comment>cout next byte of prg code</comment>
+  </at>
+  <at address="0x34f1">
+    <comment>and add to check sum</comment>
+  </at>
+  <at address="0x34f8">
+    <comment>repeat until all bytes of prg code written</comment>
+  </at>
+  <at address="0x34fa">
+    <comment>cout LSB of check sum</comment>
+  </at>
+  <at address="0x3500">
+    <comment>cout MSB of check sum</comment>
+  </at>
+  <at address="0x3506">
+    <comment>write 20 * byte value 0</comment>
+  </at>
+  <at address="0x3509">
+    <label>cass_ldout_next</label>
+    <comment>cout next lead-out byte</comment>
+  </at>
+  <at address="0x3511">
+    <label>cass_cout</label>
+    <header>
+      ---- START character out (1 byte) to cassette port ----<br />
+      * start with short cycle (via 3542h)<br />
+      * for each of the 8 bits of the byte in reg A,<br />
+      &nbsp; starting with the uppermost bit, do:<br />
+      &nbsp; * if bit is 1, then produce three<br />
+      &nbsp;   short cycles (~192µs each, via 3542h),<br />
+      +--+  +--+  +--+<br />
+      |  |  |  |  |  |<br />
+      +  +--+  +--+  +--<br />
+      &nbsp; * otherwise (bit is 0) produce one<br />
+      &nbsp;   short cycle (~192µs) and one long<br />
+      &nbsp;   cycle (~384µs, via 352bh)
+      +--+  +-----+<br />
+      |  |  |     |<br />
+      +  +--+     +-----<br />
+      <br />
+      Note that both sequence have roughly the<br />
+      same total length of ~576µs, thus building<br />
+      a bit frame of (roughly) constant length.<br />
+      That is, for reading in again, it is<br />
+      sufficient to count the number of rising<br />
+      (or falling) edges within this bit frame<br />
+      of known length.
+    </header>
+  </at>
+  <at address="0x3514">
+    <comment>serialize byte into 8 bits</comment>
+  </at>
+  <at address="0x3517">
+    <label>cass_cout_nxt</label>
+    <comment>
+      write next bit<br />
+      always start with short cycle
+    </comment>
+  </at>
+  <at address="0x351a">
+    <comment>next bit to write</comment>
+  </at>
+  <at address="0x351c">
+    <comment>if "0", then 1 long cycle</comment>
+  </at>
+  <at address="0x351e">
+    <comment>if "1", then 2 short cycles</comment>
+  </at>
+  <at address="0x3524">
+    <label>cass_chknxt</label>
+    <comment>have another bit to write?</comment>
+  </at>
+  <at address="0x352a">
+    <footer>---- END character out (1 byte) to cassette port ----</footer>
+  </at>
+  <at address="0x352b">
+    <label>cass_long_cycle</label>
+    <header>
+      ---- START cassette out: long cycle ----<br />
+      Cassette out: Long cycle<br />
+      Status "11" for ca. 192µs<br />
+      (~685 CPU T state cycles), then<br />
+      status "00" for ca. 192µs<br />
+      (~685 CPU T state cycles),<br />
+      ----+<br />
+          |<br />
+          +----<br />
+      then goto 3524h to continue with next<br />
+      bit of the current byte to write
+    </header>
+  </at>
+  <at address="0x352e">
+    <comment>cassette out max signal level</comment>
+  </at>
+  <at address="0x3533">
+    <comment>#iterations for long cycle</comment>
+  </at>
+  <at address="0x3537">
+    <comment>cassette out min signal level</comment>
+  </at>
+  <at address="0x3541">
+    <footer>---- END cassette out: long cycle ----</footer>
+  </at>
+  <at address="0x3542">
+    <label>cass_short_cycle</label>
+    <header>
+      ---- START cassette out: short cycle ----<br />
+      Cassette out: Short cyle<br />
+      Status "11" for ca. 96µs<br />
+      (~343 CPU T state cycles), then<br />
+      status "00" for ca. 96µs<br />
+      (~343 CPU T state cycles)
+      --+<br />
+        |<br />
+        +--<br />
+    </header>
+  </at>
+  <at address="0x3545">
+    <comment>cassette out max signal level</comment>
+  </at>
+  <at address="0x354a">
+    <comment>#iterations for short cycle</comment>
+  </at>
+  <at address="0x354e">
+    <comment>cassette out min signal level</comment>
+  </at>
+  <at address="0x3557">
+    <footer>---- END cassette out: short cycle ----</footer>
+  </at>
+  <at address="0x3558">
+    <label>cass_wrt_hdr</label>
+    <header>
+      ---- START cassette out: write file header ----<br />
+      255 × 0x80<br />
+        5 × 0xfe<br />
+        &lt;file_type&gt;<br />
+        &lt;file_name&gt;<br />
+      <br />
+      file_type is 0xf0 for BASIC programms<br />
+      file_name is the "\0" terminated name of<br />
+      the file (up to 16 characters plus "\0")
+    </header>
+    <comment>parse file name</comment>
+  </at>
+  <at address="0x355b">
+    <comment>
+      write value 0x80 255 times, but<br />
+      abort on key press "BREAK"
+    </comment>
+  </at>
+  <at address="0x355d">
+    <label>cass_leadin_80_next</label>
+  </at>
+  <at address="0x3562">
+    <comment>check for "BREAK"</comment>
+  </at>
+  <at address="0x3568">
+    <comment>
+      write value 0xfe 5 times, but<br />
+      abort on key press "BREAK"
+    </comment>
+  </at>
+  <at address="0x356a">
+    <label>cass_leadin_fe_next</label>
+  </at>
+  <at address="0x356f">
+    <comment>check for "BREAK"</comment>
+  </at>
+  <at address="0x3575">
+    <comment>
+      write file type code (e.g.<br />
+      code 0xf0 for BASIC programm), but<br />
+      abort on key press "BREAK"
+    </comment>
+  </at>
+  <at address="0x3579">
+    <comment>check for "BREAK"</comment>
+  </at>
+  <at address="0x357d">
+    <comment>
+      write file name into file header,<br />
+      including the trailing "\0"
+    </comment>
+  </at>
+  <at address="0x3581">
+    <comment>location of filename buffer</comment>
+  </at>
+  <at address="0x3584">
+    <label>cass_fname_nextchar</label>
+    <comment>get next filename char</comment>
+  </at>
+  <at address="0x3586">
+    <comment>output filename char to cassette</comment>
+  </at>
+  <at address="0x3589">
+    <comment>repeat for all filename chars</comment>
+  </at>
+  <at address="0x358c">
+    <label>cass_parse_fname</label>
+    <header>---- prepare parsing the file header ----</header>
+    <comment>max filename length</comment>
+  </at>
+  <at address="0x358e">
+    <comment>location of filename buffer</comment>
+  </at>
+  <at address="0x3591">
+    <comment>next char of BASIC command line</comment>
+  </at>
+  <at address="0x3592">
+    <comment>statement separator ":"?</comment>
+  </at>
+  <at address="0x3594">
+    <comment>yes: no filename given</comment>
+  </at>
+  <at address="0x3596">
+    <comment>end of input line?</comment>
+  </at>
+  <at address="0x3597">
+    <comment>yes: no filename given</comment>
+  </at>
+  <at address="0x3599">
+    <comment>
+      copy file name (w/o surrounding quotes)<br />
+      from (HL) to (DE), DE=0x7a9d
+    </comment>
+  </at>
+  <at address="0x359a">
+    <data-bytes length="0x01">'"'</data-bytes>
+    <comment>quote char</comment>
+  </at>
+  <at address="0x359b">
+    <label>parse_next_fname_char</label>
+  </at>
+  <at address="0x359c">
+    <comment>end of input line reached?</comment>
+  </at>
+  <at address="0x35a0">
+    <comment>check for closing quote char</comment>
+  </at>
+  <at address="0x35a8">
+    <label>parse_fname_finish</label>
+    <comment>add trailing 0-byte to file name</comment>
+  </at>
+  <at address="0x35aa">
+    <comment>compute actual file name length</comment>
+  </at>
+  <at address="0x35ad">
+    <comment>save actual file name length</comment>
+  </at>
+  <at address="0x35b1">
+    <label>cass_stat_line_init</label>
+    <header>---- START init status line for CLOAD / CRUN / VERIFY ----</header>
+  </at>
+  <at address="0x35b6">
+    <comment>still in graphics mode?</comment>
+  </at>
+  <at address="0x35bb">
+    <comment>no => skip switch to text mode</comment>
+  </at>
+  <at address="0x35bd">
+    <comment>yes => switch to text mode</comment>
+  </at>
+  <at address="0x35c5">
+    <comment>clear screen</comment>
+  </at>
+  <at address="0x35c8">
+    <label>cass_stat_line_init2</label>
+    <comment>move cursor to lower right corner</comment>
+  </at>
+  <at address="0x35d0">
+    <comment>
+      bottom line joined with previous line as<br />
+      double line?
+    </comment>
+  </at>
+  <at address="0x35d8">
+    <comment>no => done</comment>
+  </at>
+  <at address="0x35d9">
+    <comment>yes => decouple bottom line from previous line</comment>
+  </at>
+  <at address="0x35e0">
+    <footer>---- END prepare screen for CLOAD / CRUN / VERIFY ----</footer>
+  </at>
+  <at address="0x35e1">
+    <comment>print "CLOAD" at bottom left corner</comment>
+  </at>
+  <at address="0x35e7">
+    <label>css_rd_header</label>
+    <header>---- cassette read lead-in and header ----</header>
+    <comment>
+      cassette: wait for lead-in bit sequence<br />
+      but first check for "BREAK"
+    </comment>
+  </at>
+  <at address="0x35ea">
+    <comment>check cassette input</comment>
+  </at>
+  <at address="0x35ed">
+    <comment>got signal level "1"?</comment>
+  </at>
+  <at address="0x35ef">
+    <comment>yes => continue waiting for "0"</comment>
+  </at>
+  <at address="0x35f1">
+    <label>css_rd_hdr_next_bit</label>
+    <comment>got level "0" => try reading a single bit</comment>
+  </at>
+  <at address="0x35f4">
+    <comment>if read error, retry from start</comment>
+  </at>
+  <at address="0x35f6">
+    <comment>got "0" bit value?</comment>
+  </at>
+  <at address="0x35f8">
+    <comment>yes => get another bit</comment>
+  </at>
+  <at address="0x35fa">
+    <comment>
+      finally got a "1" bit value;<br />
+      now await another 7 bit values to form a byte
+    </comment>
+  </at>
+  <at address="0x35fc">
+    <label>css_rd_hdr_next_0</label>
+    <comment>await next of 7 bits</comment>
+  </at>
+  <at address="0x35ff">
+    <comment>if read error, retry from start</comment>
+  </at>
+  <at address="0x3603">
+    <comment>finally got bit pattern %10000000?</comment>
+  </at>
+  <at address="0x3605">
+    <comment>no => retry from start</comment>
+  </at>
+  <at address="0x3607">
+    <label>css_rd_header2</label>
+    <header>
+      ---- cassette read header contents ----<br />
+      we have now seen a byte with lead-in value of<br />
+      0x80 (bit pattern %10000000); now drop any<br />
+      further lead-in bytes
+    </header>
+    <comment>read next byte</comment>
+  </at>
+  <at address="0x360a">
+    <comment>if read error, retry from start</comment>
+  </at>
+  <at address="0x360d">
+    <comment>still lead-in byte 80?</comment>
+  </at>
+  <at address="0x360f">
+    <comment>yes => drop &amp; read next byte</comment>
+  </at>
+  <at address="0x3611">
+    <comment>expect this and the next 4 bytes</comment>
+  </at>
+  <at address="0x3613">
+    <label>css_chk_fe</label>
+    <comment>to be 0xfe</comment>
+  </at>
+  <at address="0x3615">
+    <comment>no => retry from start</comment>
+  </at>
+  <at address="0x3618">
+    <comment>and the next one of them</comment>
+  </at>
+  <at address="0x361b">
+    <comment>if read error, retry from start</comment>
+  </at>
+  <at address="0x361e">
+    <comment>until we got all expected 0xfe values</comment>
+  </at>
+  <at address="0x3620">
+    <comment>read file_type</comment>
+  </at>
+  <at address="0x3623">
+    <comment>remember file_type</comment>
+  </at>
+  <at address="0x3626">
+    <comment>
+      use cout buffer as temporary storage for<br />
+      filename read from cassette input
+    </comment>
+  </at>
+  <at address="0x3629">
+    <comment>fname has max 16 chars + "\0" + 1</comment>
+  </at>
+  <at address="0x362b">
+    <comment>read fname char from cassette</comment>
+  </at>
+  <at address="0x362e">
+    <comment>store fname char in cout buffer</comment>
+  </at>
+  <at address="0x362f">
+    <comment>got trailing "\0" char?</comment>
+  </at>
+  <at address="0x3630">
+    <comment>yes => fname complete</comment>
+  </at>
+  <at address="0x3632">
+    <comment>no => prepare for next char</comment>
+  </at>
+  <at address="0x3633">
+    <comment>
+      and go for at, as long as max length is<br />
+      not yet exhausted
+    </comment>
+  </at>
+  <at address="0x3635">
+    <comment>max length exceeded => retry from start</comment>
+  </at>
+  <at address="0x3638">
+    <label>css_rd_found</label>
+    <comment>pointer to message "FOUND"</comment>
+  </at>
+  <at address="0x3644">
+    <comment>location of cout buffer</comment>
+  </at>
+  <at address="0x3647">
+    <comment>location of filename buffer</comment>
+  </at>
+  <at address="0x364a">
+    <label>css_chk_fname_next</label>
+    <comment>next char from filename buffer</comment>
+  </at>
+  <at address="0x364b">
+    <comment>termination char "\0"?</comment>
+  </at>
+  <at address="0x364c">
+    <comment>yes => done</comment>
+  </at>
+  <at address="0x364d">
+    <comment>no => check, if same as in cout buffer</comment>
+  </at>
+  <at address="0x364e">
+    <comment>no => retry from start</comment>
+  </at>
+  <at address="0x3651">
+    <comment>update locations for next fname char</comment>
+  </at>
+  <at address="0x3653">
+    <comment>continue with next fname char</comment>
+  </at>
+  <at address="0x3656">
+    <label>cmd_cload</label>
+    <header>---- handler for token 0xb9 ("CLOAD") ----</header>
+    <comment>update cout_mode for "CLOAD"</comment>
+  </at>
+  <at address="0x365f">
+    <label>cmd_c_any</label>
+    <header>
+      shared code for CLOAD, CRUN and VERIFY;<br />
+      uses address 0x7839 to distinguish mode
+    </header>
+  </at>
+  <at address="0x3664">
+    <comment>prepare screen</comment>
+  </at>
+  <at address="0x3667">
+    <label>css_waiting</label>
+    <comment>pointer to message "WAITING"</comment>
+  </at>
+  <at address="0x366a">
+    <comment>update status line</comment>
+  </at>
+  <at address="0x366d">
+    <label>css_rd_until_prg</label>
+    <comment>try reading lead-in and header</comment>
+  </at>
+  <at address="0x3673">
+    <comment>invalid header?</comment>
+  </at>
+  <at address="0x3675">
+    <comment>yes => retry</comment>
+  </at>
+  <at address="0x3677">
+    <comment>pointer to message "LOADING"</comment>
+  </at>
+  <at address="0x367d">
+    <comment>set up pointer for check sum</comment>
+  </at>
+  <at address="0x3681">
+    <comment>read prgmem_start and vlt_start</comment>
+  </at>
+  <at address="0x3687">
+    <comment>push vlt_start</comment>
+  </at>
+  <at address="0x3688">
+    <comment>(vlt_start - prgmem_start) bytes of prg code to read</comment>
+  </at>
+  <at address="0x368a">
+    <comment>&lt;0 ? => loading error</comment>
+  </at>
+  <at address="0x368d">
+    <comment>store vlt_start</comment>
+  </at>
+  <at address="0x3691">
+    <comment>BC := #bytes of prg code to read</comment>
+  </at>
+  <at address="0x3693">
+    <comment>HL := vlt_start</comment>
+  </at>
+  <at address="0x3694">
+    <comment>are we in verify mode?</comment>
+  </at>
+  <at address="0x3699">
+    <comment>yes => return to verify handler</comment>
+  </at>
+  <at address="0x369c">
+    <label>css_rd_next_byte</label>
+    <comment>get next byte of prg code</comment>
+  </at>
+  <at address="0x369f">
+    <comment>store in prg code memory</comment>
+  </at>
+  <at address="0x36a0">
+    <comment>update check sum</comment>
+  </at>
+  <at address="0x36a3">
+    <comment>update memory location of prg code</comment>
+  </at>
+  <at address="0x36a4">
+    <comment>BC = 0?</comment>
+  </at>
+  <at address="0x36a7">
+    <comment>no => continue with next prg code byte</comment>
+  </at>
+  <at address="0x36a9">
+    <comment>LSB of check sum as expected?</comment>
+  </at>
+  <at address="0x36af">
+    <comment>no => loading error</comment>
+  </at>
+  <at address="0x36b2">
+    <comment>MSB of check sum as expected?</comment>
+  </at>
+  <at address="0x36b8">
+    <comment>no => loading error</comment>
+  </at>
+  <at address="0x36bb">
+    <comment>
+      update vlt_start to first memory<br />
+      location after prg code
+    </comment>
+  </at>
+  <at address="0x36bf">
+    <comment>
+      print "\r" to put cassette status<br />
+      line out of action
+    </comment>
+  </at>
+  <at address="0x36c4">
+    <comment>file type "f1" (binary image)?</comment>
+  </at>
+  <at address="0x36c9">
+    <comment>no => go back to BASIC</comment>
+  </at>
+  <at address="0x36cb">
+    <comment>yes => fetch binary image start address</comment>
+  </at>
+  <at address="0x36ce">
+    <comment>execute binary image</comment>
+  </at>
+  <at address="0x36cf">
+    <label>go_ready</label>
+    <header>print "READY" and enter edit mode</header>
+  </at>
+  <at address="0x36d9">
+    <comment>location of cout_mode</comment>
+  </at>
+  <at address="0x36dc">
+    <comment>executing "CRUN"?</comment>
+  </at>
+  <at address="0x36de">
+    <comment>yes => run loaded program</comment>
+  </at>
+  <at address="0x36e0">
+    <comment>no => back to BASIC editor</comment>
+  </at>
+  <at address="0x36e3">
+    <label>css_run_prg</label>
+    <comment>clear "CRUN" flag of cout_mode</comment>
+  </at>
+  <at address="0x36e8">
+    <comment>load prg code start address</comment>
+  </at>
+  <at address="0x36f5">
+    <comment>cursor off</comment>
+  </at>
+  <at address="0x36fb">
+    <comment>copy into BASIC input line buffer</comment>
+  </at>
+  <at address="0x36fe">
+    <comment>textual command "RUN\0"</comment>
+  </at>
+  <at address="0x3701">
+    <label>cp_run_nxt</label>
+  </at>
+  <at address="0x3704">
+    <comment>copy complete</comment>
+  </at>
+  <at address="0x3706">
+    <comment>prepare to copy next char of command</comment>
+  </at>
+  <at address="0x370a">
+    <label>exec_cmd</label>
+    <comment>run command in input line buffer</comment>
+  </at>
+  <at address="0x3711">
+    <label>css_ld_error</label>
+    <comment>pointer to message "\rLOADING ERROR\r"</comment>
+  </at>
+  <at address="0x371d">
+    <comment>retry loading</comment>
+  </at>
+  <at address="0x3720">
+    <comment>move cursor to lower right corner of screen</comment>
+  </at>
+  <at address="0x372b">
+    <comment>retry loading</comment>
+  </at>
+  <at address="0x372e">
+    <label>cmd_crun</label>
+    <comment>handler for token 0x9c ("CRUN")</comment>
+  </at>
+  <at address="0x372f">
+    <comment>update cout_mode for "CRUN"</comment>
+  </at>
+  <at address="0x3738">
+    <label>cmd_verify</label>
+    <header>---- handler for token 0x98 ("VERIFY") ----</header>
+    <comment>update cout_mode for "VERIFY"</comment>
+  </at>
+  <at address="0x3742">
+    <label>cmd_verify2</label>
+    <header>---- tail of handler for token 0x98 ("VERIFY") ----</header>
+  </at>
+  <at address="0x3743">
+    <label>verify_next</label>
+    <comment>next byte for verification</comment>
+  </at>
+  <at address="0x3746">
+    <comment>matches code in memory?</comment>
+  </at>
+  <at address="0x3747">
+    <comment>yes => go for next byte</comment>
+  </at>
+  <at address="0x3749">
+    <label>verify_error</label>
+    <comment>pointer to message "\rVERIFY "</comment>
+  </at>
+  <at address="0x3752">
+    <label>verify_prepare_next</label>
+    <comment>update to next memory address</comment>
+  </at>
+  <at address="0x3753">
+    <comment>update loop count</comment>
+  </at>
+  <at address="0x3754">
+    <comment>count == 0?</comment>
+  </at>
+  <at address="0x3756">
+    <comment>no => continue with next byte</comment>
+  </at>
+  <at address="0x3758">
+    <label>verify_ok</label>
+    <comment>yes => restore cout_mode</comment>
+  </at>
+  <at address="0x375d">
+    <comment>pointer to message "\rVERIFY "</comment>
+  </at>
+  <at address="0x3763">
+    <comment>pointer to message "OK\r"</comment>
+  </at>
+  <at address="0x376c">
+    <label>txt_verify</label>
+    <data-bytes length="0x09">"\rVERIFY \0"</data-bytes>
+  </at>
+  <at address="0x3775">
+    <label>css_rd_byte</label>
+    <header>
+      ---- cassette input: read byte ----<br />
+      on error, C flag is set<br />
+      otherwise, resulting byte will be stored in reg A
+    </header>
+  </at>
+  <at address="0x3777">
+    <comment>collect 8 bits to get a byte</comment>
+  </at>
+  <at address="0x3779">
+    <label>css_rd_next_bit</label>
+    <comment>
+      read next bit and shift left it into reg D,<br />
+      holding a copy in reg A
+    </comment>
+  </at>
+  <at address="0x377c">
+    <comment>failed? => exit with C flag set</comment>
+  </at>
+  <at address="0x3780">
+    <comment>got all 8 bits; prepare to return result</comment>
+  </at>
+  <at address="0x3782">
+    <comment>temporary save result before checking for "BREAK"</comment>
+  </at>
+  <at address="0x3785">
+    <comment>check for "BREAK"</comment>
+  </at>
+  <at address="0x378b">
+    <comment>return result in reg A</comment>
+  </at>
+  <at address="0x378c">
+    <label>css_abrt_rd_byte</label>
+    <comment>abort with C flag set</comment>
+  </at>
+  <at address="0x378f">
+    <label>css_rd_bit</label>
+    <header>
+      ---- cassette input: read bit ----<br />
+      On error, C flag is set<br />
+      otherwise, resulting bit will be<br />
+      left-shifted into reg A.<br />
+      for detailed description of the<br />
+      signal encoding, see annotations<br />
+      for code at memory location 0x3511.
+    </header>
+    <comment>
+      wait for cassette input signal level of "0",<br />
+      but time out after 0x0800 loop iterations
+    </comment>
+  </at>
+  <at address="0x3790">
+    <label>css_rd_bit2</label>
+    <comment>max 0x07ff iterations</comment>
+  </at>
+  <at address="0x3793">
+    <label>css_await_lvl0</label>
+    <comment>await signal level "0"</comment>
+  </at>
+  <at address="0x3796">
+    <comment>got signal level "0"?</comment>
+  </at>
+  <at address="0x3798">
+    <comment>yes => test if stable</comment>
+  </at>
+  <at address="0x379a">
+    <comment>prepare next try</comment>
+  </at>
+  <at address="0x379b">
+    <comment>timed out?</comment>
+  </at>
+  <at address="0x379d">
+    <comment>no => continue</comment>
+  </at>
+  <at address="0x37a0">
+    <comment>yes => set C flag to indicate read error</comment>
+  </at>
+  <at address="0x37a1">
+    <comment>abort with read error</comment>
+  </at>
+  <at address="0x37a2">
+    <label>css_stable_lvl0</label>
+    <comment>still signal level "0", or detected jitter?</comment>
+  </at>
+  <at address="0x37a7">
+    <comment>
+      jitter detected<br />
+      => wait again for stable signal level "0"
+    </comment>
+  </at>
+  <at address="0x37a9">
+    <comment>still signal level "0", or detected jitter?</comment>
+  </at>
+  <at address="0x37ae">
+    <comment>
+      jitter detected<br />
+      => wait again for stable signal level "0"
+    </comment>
+  </at>
+  <at address="0x37b0">
+    <comment>
+      bit frame starts here;<br />
+      skip roughly the first half of the bit frame<br />
+      (0x52 iterations) to see if this frame<br />
+      contains a long cycle (i.e. bit=0)<br />
+      or only short cycles (i.e. bit=1)
+    </comment>
+  </at>
+  <at address="0x37b2">
+    <label>css_skip_halfbit</label>
+  </at>
+  <at address="0x37b4">
+    <comment>
+      now, examine 2nd half of the bit frame
+    </comment>
+  </at>
+  <at address="0x37b7">
+    <comment>signal level "0"?</comment>
+  </at>
+  <at address="0x37b9">
+    <comment>no => check for stable "1"</comment>
+  </at>
+  <at address="0x37bb">
+    <label>css_await_lvl1</label>
+    <comment>
+      wait for signal level "1"<br />
+      (NB: this loop can *not* be "BREAK"ed)
+    </comment>
+  </at>
+  <at address="0x37c0">
+    <comment>
+      signal level "0"?<br />
+      => continue waiting
+    </comment>
+  </at>
+  <at address="0x37c2">
+    <comment>
+      signal level "1"?<br />
+      => retry getting signal level "0"<br />
+      with timeout after max 0x07ff cycles
+    </comment>
+  </at>
+  <at address="0x37c4">
+    <label>css_stable_lvl1</label>
+    <comment>
+      count falling edges for a fixed<br />
+      interval of time matching roughly the<br />
+      2nd half of the bit frame
+    </comment>
+  </at>
+  <at address="0x37c6">
+    <comment>reset falling-edge counter to 0</comment>
+  </at>
+  <at address="0x37c8">
+    <label>css_chk_stable1</label>
+    <comment>signal level "0"?</comment>
+  </at>
+  <at address="0x37cd">
+    <comment>
+      yes => check for falling edge
+    </comment>
+  </at>
+  <at address="0x37cf">
+    <label>css_chk_phase1</label>
+    <comment>no => decrease timer and continue watching</comment>
+  </at>
+  <at address="0x37d1">
+    <label>css_rd_bit_ready</label>
+    <comment>
+      bit frame timed out;<br />
+      now determine bit value from number of<br />
+      detected falling edges,
+    </comment>
+  </at>
+  <at address="0x37d2">
+    <comment>excluding extra falling edge</comment>
+  </at>
+  <at address="0x37d4">
+    <comment>left-shift result bit into LSB of reg D</comment>
+  </at>
+  <at address="0x37d7">
+    <comment>return with copy of D in A</comment>
+  </at>
+  <at address="0x37d8">
+    <comment>and C flag cleared</comment>
+  </at>
+  <at address="0x37d9">
+    <comment>cassette read bit successfully completed</comment>
+  </at>
+  <at address="0x37da">
+    <label>css_chk_phase0</label>
+    <comment>check if long stable phase "0"</comment>
+  </at>
+  <at address="0x37dd">
+    <comment>still signal level "0", or detect jitter?</comment>
+  </at>
+  <at address="0x37df">
+    <comment>
+      jitter detected<br />
+      => not a true falling edge
+    </comment>
+  </at>
+  <at address="0x37e4">
+    <comment>still signal level "0", or detect jitter?</comment>
+  </at>
+  <at address="0x37e6">
+    <comment>
+      jitter detected<br />
+      => not a true falling edge
+    </comment>
+  </at>
+  <at address="0x37e8">
+    <comment>falling edge detected</comment>
+  </at>
+  <at address="0x37ec">
+    <comment>still got signal level "0"?</comment>
+  </at>
+  <at address="0x37ee">
+    <comment>
+      no => rising edge detected
+    </comment>
+  </at>
+  <at address="0x37f0">
+    <comment>decrease timer and continue watching</comment>
+  </at>
+  <at address="0x37f2">
+    <comment>
+      bit frame timed out;<br />
+      time to evaluate edge count
+    </comment>
+  </at>
+  <at address="0x37f4">
+    <label>cass_prt_status</label>
+    <header>
+      ---- START print status message in bottom line ----<br />
+      prints message in left bottom corner of screen<br />
+      HL contains pointer to text to print<br />
+    </header>
+    <comment>
+      data ready? => abort
+    </comment>
+  </at>
+  <at address="0x37f9">
+    <comment>load video screen address of bottom line</comment>
+  </at>
+  <at address="0x37fc">
+    <comment>clear bottom line</comment>
+  </at>
+  <at address="0x3804">
+    <label>cass_prt_status2</label>
+    <comment>
+      data ready? => abort
+    </comment>
+  </at>
+  <at address="0x3809">
+    <comment>
+      jump to actual status printing routine<br />
+      (will return to caller of caller)
+    </comment>
+  </at>
+  <at address="0x3814">
+    <comment>
+      data ready? -> abort
+    </comment>
+  </at>
+  <at address="0x3834">
+    <comment>next char</comment>
+  </at>
+  <at address="0x3836">
+    <comment>trailing "\0"? -> done</comment>
+  </at>
+  <at address="0x3842">
+    <label>txt_waiting</label>
+    <data-bytes length="0x08">"WAITING\0"</data-bytes>
+  </at>
+  <at address="0x384a">
+    <label>txt_ld_error</label>
+    <data-bytes length="0x10">"\rLOADING ERROR\r\0"</data-bytes>
+  </at>
+  <at address="0x385a">
+    <label>txt_found</label>
+    <data-bytes length="0x06">"FOUND\0"</data-bytes>
+  </at>
+  <at address="0x3860">
+    <label>txt_loading</label>
+    <data-bytes length="0x08">"LOADING\0"</data-bytes>
+  </at>
+  <at address="0x3868">
+    <label>css_rd_ptrs</label>
+    <header>
+      ---- css_rd_ptrs: read prgmem_start and vlt_start ----<br />
+      * prgmem_start => reg DE<br />
+      * vlt_start => reg HL<br />
+      on failure, abort with flag C set
+    </header>
+    <comment>read LSB of prgmem_start into reg E</comment>
+  </at>
+  <at address="0x386d">
+    <comment>init check sum with LSB of prgmem_start</comment>
+  </at>
+  <at address="0x3874">
+    <comment>read MSB of prgmem_start into reg D</comment>
+  </at>
+  <at address="0x3879">
+    <comment>add to check sum</comment>
+  </at>
+  <at address="0x387c">
+    <comment>read LSB of vlt_start into reg L</comment>
+  </at>
+  <at address="0x3881">
+    <comment>add to check sum</comment>
+  </at>
+  <at address="0x3884">
+    <comment>read MSB of vlt_start into reg H</comment>
+  </at>
+  <at address="0x3889">
+    <comment>add to check sum</comment>
+  </at>
+  <at address="0x388d">
+    <comment>
+      successfully return with prgmem_start in reg DE<br />
+      and vlt_start in reg HL
+    </comment>
+  </at>
+  <at address="0x388e">
+    <label>add_at_ix</label>
+    <header>
+      -------- Check Sum Helper --------<br />
+      Given (IX) points to the location of a<br />
+      2 bytes (=16 bit) check sum, this function<br />
+      adds the A register's value to the sum:<br />
+      (IX) += A
+    </header>
+    <comment>update LSB of check sum</comment>
+  </at>
+  <at address="0x3894">
+    <comment>update MSB of check sum</comment>
+  </at>
+  <at address="0x389d">
+    <label>cmd_color</label>
+    <comment>handler for token 0x97 ("COLOR")</comment>
+  </at>
+  <at address="0x389e">
+    <comment>found ","?</comment>
+  </at>
+  <at address="0x38a0">
+    <comment>yes: no new fg color specified</comment>
+  </at>
+  <at address="0x38a2">
+    <label>fg_color</label>
+    <comment>handle fg color</comment>
+  </at>
+  <at address="0x38a5">
+    <comment>fg color &lt; 1? -> error</comment>
+  </at>
+  <at address="0x38a9">
+    <comment>fg color &gt; 9? -> error</comment>
+  </at>
+  <at address="0x38ae">
+    <comment>internally 0-based, range now 0..7</comment>
+  </at>
+  <at address="0x38b1">
+    <comment>shift into upper nybble</comment>
+  </at>
+  <at address="0x38b9">
+    <comment>save as new mask</comment>
+  </at>
+  <at address="0x38bc">
+    <comment>next input char</comment>
+  </at>
+  <at address="0x38bd">
+    <comment>have more params?</comment>
+  </at>
+  <at address="0x38be">
+    <comment>no bg color => done</comment>
+  </at>
+  <at address="0x38bf">
+    <comment>next char is statement separator ":"?</comment>
+  </at>
+  <at address="0x38c1">
+    <comment>yes => done with statement</comment>
+  </at>
+  <at address="0x38c2">
+    <label>bg_color</label>
+    <comment>handle bg color</comment>
+  </at>
+  <at address="0x38c3">
+    <data-bytes length="0x01">","</data-bytes>
+    <comment>comma separator</comment>
+  </at>
+  <at address="0x38c4">
+    <comment>parse bg color value</comment>
+  </at>
+  <at address="0x3903">
+    <label>graf_set</label>
+    <header>
+      ---- START SET(x, y) ----<br />
+      function for setting a pixel on<br />
+      the graphics screen<br />
+      <br />
+      Register DE contains the pre-computed<br />
+      memory address to change.<br />
+      <br />
+      Register C contains the pre-computed<br />
+      AND bit mask of those bits to leave<br />
+      unchanged.<br />
+      <br />
+      Register A contains the code of current<br />
+      color (i.e. the bits to set) in those<br />
+      2 bits to bet set; all other bits are 0<br />
+      (i.e. it can be used as OR bist mask).<br />
+      <br />
+      NOTE: The code unneccessarily performs<br />
+      two write accesses to the video buffer,<br />
+      first effectively doing an UNSET(x, y),<br />
+      and then writing the final, correct value
+    </header>
+  </at>
+  <at address="0x3906">
+    <comment>write the UNSET(x, y) value into video RAM</comment>
+  </at>
+  <at address="0x3907">
+    <comment>check: also do SET(x, y)?</comment>
+  </at>
+  <at address="0x390e">
+    <comment>write SET(x, y) value into video RAM</comment>
+  </at>
+  <at address="0x390f">
+    <label>finish_func</label>
+    <comment>parser: consume closing ")" character</comment>
+  </at>
+  <at address="0x3910">
+    <data-bytes length="0x01">")"</data-bytes>
+    <comment>right parenthesis</comment>
+  </at>
+  <at address="0x3911">
+    <footer>---- END SET(x, y) ----</footer>
+  </at>
+  <at address="0x3912">
+    <label>cmd_copy</label>
+    <comment>handler for token 0x96 ("COPY")</comment>
+  </at>
+  <at address="0x391c">
+    <comment>with screen starting at 0x7000,</comment>
+  </at>
+  <at address="0x391f">
+    <comment>for all 16 lines of the screen,</comment>
+  </at>
+  <at address="0x3921">
+    <comment>and for all 32 chars of each line,</comment>
+  </at>
+  <at address="0x3924">
+    <comment>text char or block graphics?</comment>
+  </at>
+  <at address="0x3928">
+    <label>cmd_copy_grph</label>
+  </at>
+  <at address="0x392d">
+    <label>cmd_copy_txt</label>
+  </at>
+  <at address="0x3ae2">
+    <comment>send CR+LF to printer</comment>
+  </at>
+  <at address="0x3ae8">
+    <label>kbd_scan_brk</label>
+    <header>
+      ---- START scan for "BREAK" key ----<br />
+      if pressed, set flag C=1,<br />
+      otherwise C=0
+    </header>
+  </at>
+  <at address="0x3ae9">
+    <comment>scan kbd row #1</comment>
+  </at>
+  <at address="0x3aec">
+    <comment>key "CTRL" pressed?</comment>
+  </at>
+  <at address="0x3aee">
+    <comment>no => return with C flag left unmodified</comment>
+  </at>
+  <at address="0x3aef">
+    <comment>scan kbd row #5</comment>
+  </at>
+  <at address="0x3af3">
+    <comment>key "-" (="BREAK") pressed?</comment>
+  </at>
+  <at address="0x3af5">
+    <comment>yes => return with C flag set</comment>
+  </at>
+  <at address="0x3af6">
+    <comment>no => return with C flag cleared</comment>
+  </at>
+  <at address="0x3af7">
+    <footer>---- END scan for "BREAK" key ----</footer>
+  </at>
+  <at address="0x3af8">
+    <label>kbd_chk_brk</label>
+    <header>
+      ---- START check for "BREAK" ----<br />
+      abort CLOAD / CRUN / VERIFY, if<br />
+      "BREAK" is pressed
+    </header>
+    <comment>"BREAK" pressed?</comment>
+  </at>
+  <at address="0x3afb">
+    <comment>no => continue cassette command</comment>
+  </at>
+  <at address="0x3afc">
+    <comment>kick off cassette command stack frame</comment>
+  </at>
+  <at address="0x3afe">
+    <label>cass_cleanup</label>
+    <comment>clean-up cassette command mode</comment>
+  </at>
+  <at address="0x3b08">
+    <footer>---- END check for "BREAK" ----</footer>
+  </at>
+  <at address="0x3b09">
+    <comment>call soft reset</comment>
+  </at>
+  <at address="0x3b54">
+    <label>cass_cout</label>
+    <header>---- START cout for cassette ----</header>
+  </at>
+  <at address="0x3b5a">
+    <comment>file_type for ascii data written to cassette</comment>
+  </at>
+  <at address="0x3b63">
+    <comment>read file name: parse '"'</comment>
+  </at>
+  <at address="0x3b64">
+    <data-bytes length="0x01">'"'</data-bytes>
+    <comment>quote char</comment>
+  </at>
+  <at address="0x3b65">
+    <comment>read file name: parse ','</comment>
+  </at>
+  <at address="0x3b66">
+    <data-bytes length="0x01">","</data-bytes>
+    <comment>comma separator</comment>
+  </at>
+  <at address="0x3b67">
+    <footer>---- END cout for cassette ----</footer>
+  </at>
+  <at address="0x3b68">
+    <label>cass_cin</label>
+    <header>---- START cin from cassette ----</header>
+  </at>
+  <at address="0x3b6f">
+    <data-bytes length="0x01">'"'</data-bytes>
+    <comment>quote char</comment>
+  </at>
+  <at address="0x3b71">
+    <data-bytes length="0x01">","</data-bytes>
+    <comment>comma separator</comment>
+  </at>
+  <at address="0x3b76">
+    <comment>pointer to "WAITING\0"</comment>
+  </at>
+  <at address="0x3b82">
+    <comment>file_type 0xf2 for ascii data?</comment>
+  </at>
+  <at address="0x3b84">
+    <comment>no => wait for other data from cassette</comment>
+  </at>
+  <at address="0x3cd4">
+    <label>prt_err</label>
+    <header>
+      ---- START print error message ----<br />
+      error code in register E
+    </header>
+  </at>
+  <at address="0x3cd9">
+    <comment>start of next message reached?</comment>
+  </at>
+  <at address="0x3cda">
+    <comment>no => try next char</comment>
+  </at>
+  <at address="0x3cdd">
+    <comment>is this the right message?</comment>
+  </at>
+  <at address="0x3cde">
+    <comment>no => search for next message</comment>
+  </at>
+  <at address="0x3ce0">
+    <comment>yes => clear msg start marker</comment>
+  </at>
+  <at address="0x3ce2">
+    <comment>print char of msg</comment>
+  </at>
+  <at address="0x3ce5">
+    <comment>fetch next char of msg</comment>
+  </at>
+  <at address="0x3ce7">
+    <comment>end of msg reached?</comment>
+  </at>
+  <at address="0x3ce8">
+    <comment>no => continue printing</comment>
+  </at>
+  <at address="0x3ceb">
+    <comment>yes => done</comment>
+    <footer>
+      ---- END print error message ----<br />
+      NOTE: There is no stop marker (value >=0x80) behind<br />
+      the last error code message "DISK COMMAND"<br />
+      (error code 0x2c), such that this subroutine will print<br />
+      too many chars for that message.
+    </footer>
+  </at>
+  <at address="0x3cec">
+    <label>err_msg_tbl</label>
+    <header>
+      ---- START ERROR MESSAGES TABLE ----<br />
+      (first character of each message marked by bit 8=1)<br />
+      error codes are given wrt value of register E when<br />
+      when calling the print error message subroutine
+    </header>
+    <comment>error 0x00</comment>
+    <data-bytes length="0x10">"NEXT WITHOUT FOR"</data-bytes>
+  </at>
+  <at address="0x3cfc">
+    <comment>error 0x02</comment>
+    <data-bytes length="0x06">"SYNTAX"</data-bytes>
+  </at>
+  <at address="0x3d02">
+    <comment>error 0x04</comment>
+    <data-bytes length="0x13">"RET'N WITHOUT GOSUB"</data-bytes>
+  </at>
+  <at address="0x3d15">
+    <comment>error 0x06</comment>
+    <data-bytes length="0x0b">"OUT OF DATA"</data-bytes>
+  </at>
+  <at address="0x3d20">
+    <comment>error 0x08</comment>
+    <data-bytes length="0x0d">"FUNCTION CODE"</data-bytes>
+  </at>
+  <at address="0x3d2d">
+    <comment>error 0x0a</comment>
+    <data-bytes length="0x08">"OVERFLOW"</data-bytes>
+  </at>
+  <at address="0x3d35">
+    <comment>error 0x0c</comment>
+    <data-bytes length="0x0d">"OUT OF MEMORY"</data-bytes>
+  </at>
+  <at address="0x3d42">
+    <comment>error 0x0e</comment>
+    <data-bytes length="0x11">"UNDEF'D STATEMENT"</data-bytes>
+  </at>
+  <at address="0x3d53">
+    <comment>error 0x10</comment>
+    <data-bytes length="0x0d">"BAD SUBSCRIPT"</data-bytes>
+  </at>
+  <at address="0x3d60">
+    <comment>error 0x12</comment>
+    <data-bytes length="0x0d">"REDIM'D ARRAY"</data-bytes>
+  </at>
+  <at address="0x3d6d">
+    <comment>error 0x14</comment>
+    <data-bytes length="0x10">"DIVISION BY ZERO"</data-bytes>
+  </at>
+  <at address="0x3d7d">
+    <comment>error 0x16</comment>
+    <data-bytes length="0x0e">"ILLEGAL DIRECT"</data-bytes>
+  </at>
+  <at address="0x3d8b">
+    <comment>error 0x18</comment>
+    <data-bytes length="0x0d">"TYPE MISMATCH"</data-bytes>
+  </at>
+  <at address="0x3d98">
+    <comment>error 0x1a</comment>
+    <data-bytes length="0x0c">"OUT OF SPACE"</data-bytes>
+  </at>
+  <at address="0x3da4">
+    <comment>error 0x1c</comment>
+    <data-bytes length="0x0f">"STRING TOO LONG"</data-bytes>
+  </at>
+  <at address="0x3db3">
+    <comment>error 0x1e</comment>
+    <data-bytes length="0x13">"FORMULA TOO COMPLEX"</data-bytes>
+  </at>
+  <at address="0x3dc6">
+    <comment>error 0x20</comment>
+    <data-bytes length="0x0a">"CAN'T CONT"</data-bytes>
+  </at>
+  <at address="0x3dd0">
+    <comment>error 0x22</comment>
+    <data-bytes length="0x09">"NO RESUME"</data-bytes>
+  </at>
+  <at address="0x3dd9">
+    <comment>error 0x24</comment>
+    <data-bytes length="0x0e">"RESUME WITHOUT"</data-bytes>
+  </at>
+  <at address="0x3de7">
+    <comment>error 0x26</comment>
+    <data-bytes length="0x0b">"UNPRINTABLE"</data-bytes>
+  </at>
+  <at address="0x3df2">
+    <comment>error 0x28</comment>
+    <data-bytes length="0x0f">"MISSING OPERAND"</data-bytes>
+  </at>
+  <at address="0x3e01">
+    <comment>error 0x2a</comment>
+    <data-bytes length="0x0d">"BAD FILE DATA"</data-bytes>
+  </at>
+  <at address="0x3e0e">
+    <comment>error 0x2c</comment>
+    <data-bytes length="0x0c">"DISK COMMAND"</data-bytes>
+  </at>
+  <at address="0x3e19">
+    <footer>---- END ERROR MESSAGES TABLE ----</footer>
+  </at>
+  <at address="0x3e1a">
+    <label>txt_syntax_err</label>
+    <data-bytes length="0x0f">"?SYNTAX ERROR\r\0"</data-bytes>
+  </at>
+  <at address="0x3ef6">
+    <label>blank_de</label>
+    <comment>
+      put blank at (DE), consider dsp_mode
+    </comment>
+  </at>
+  <at address="0x3f02">
+    <label>get_blank</label>
+    <comment>
+      get blank char, consider dsp_mode
+    </comment>
+  </at>
+  <at address="0x3f0e">
+    <label>prt_cass_status</label>
+    <header>print cassette status</header>
+    <comment>video buffer address of bottom text line</comment>
+  </at>
+  <at address="0x3f11">
+    <comment>check for normal / inverse mode</comment>
+  </at>
+  <at address="0x3f17">
+    <comment>get next char</comment>
+  </at>
+  <at address="0x3f18">
+    <comment>end of text reached?</comment>
+  </at>
+  <at address="0x3f19">
+    <comment>yes => done</comment>
+  </at>
+  <at address="0x3f1a">
+    <comment>convert char for inverse mode</comment>
+  </at>
+  <at address="0x3f1c">
+    <comment>put char into video RAM</comment>
+  </at>
+  <at address="0x3f1d">
+    <comment>next video RAM address</comment>
+  </at>
+  <at address="0x3f1e">
+    <comment>next character address</comment>
+  </at>
+  <at address="0x3f1f">
+    <comment>continue with next character</comment>
+  </at>
+  <at address="0x3f21">
+    <comment>consider inverse / normal</comment>
+  </at>
+  <at address="0x3f25">
+    <comment>read next char from (HL)</comment>
+  </at>
+  <at address="0x3f2a">
+    <comment>write next char (inverse) to (DE) </comment>
+  </at>
+  <at address="0x3f2c">
+    <comment>inverse char ":"</comment>
+  </at>
+  <at address="0x3f2f">
+    <comment>write next char (normal) to (DE) </comment>
+  </at>
+  <at address="0x3f30">
+    <comment>normal char ":"</comment>
+  </at>
+  <at address="0x3f73">
+    <label>css_rd_byte2</label>
+    <header>
+      ---- unrecoverable css_rd_byte ----<br />
+      like css_rd_byte, but on failure, directly exit with error
+    </header>
+    <comment>read next byte from cassette</comment>
+  </at>
+  <at address="0x3f76">
+    <comment>no error => done</comment>
+  </at>
+  <at address="0x3f77">
+    <comment>error => cancel caller's frame and</comment>
+  </at>
+  <at address="0x3f78">
+    <comment>exit with error</comment>
+  </at>
+  <at address="0x3fa0">
+    <label>dark_mode</label>
+    <comment>scan kbd row #1</comment>
+  </at>
+  <at address="0x3fa3">
+    <comment>key "CTRL" pressed during boot?</comment>
+  </at>
+  <at address="0x3fa7">
+    <comment>no => normal mode</comment>
+  </at>
+  <at address="0x3fa9">
+    <comment>yes => set dark mode</comment>
+  </at>
+  <at address="0x3fb4">
+    <comment>
+      clear screen to avoid confusing the<br />
+      interpreter with competing mode chars
+    </comment>
+  </at>
+  <at address="0x3fb7">
+    <data-bytes length="0x39">FILL(00, 39)</data-bytes>
+    <comment>reserved spare bytes</comment>
+  </at>
+  <at address="0x3ff0">
+    <data-bytes length="0x10" />
+    <comment>unused</comment>
+  </at>
+  <at address="0x6800">
+    <label>io_base</label>
+    <header>---- START memory mapped I/O ----</header>
+    <data-bytes length="0x800" />
+  </at>
+  <at address="0x6fff">
+    <footer>---- END memory mapped I/O ----</footer>
+  </at>
+  <at address="0x7000">
+    <label>io_vid_all</label>
+    <header>---- START video RAM (text + graphics) ----</header>
+    <data-bytes length="0x200" />
+  </at>
+  <at address="0x71ff">
+    <footer>---- END video RAM (text) ----</footer>
+  </at>
+  <at address="0x7200">
+    <label>io_vid_hires</label>
+    <header>---- START video RAM (graphics only) ----</header>
+    <data-bytes length="0x600" />
+  </at>
+  <at address="0x77ff">
+    <footer>---- END video RAM (graphics) ----</footer>
+  </at>
+  <at address="0x7800">
+    <label>rst08_vctr</label>
+    <comment>
+      Call to RST 08H implementation,<br />
+      by default, a jump to 0x1c96
+    </comment>
+  </at>
+  <at address="0x7803">
+    <label>rst10_vctr</label>
+    <comment>
+      Call to RST 10H implementation,<br />
+      by default, a jump to 0x1d78
+    </comment>
+  </at>
+  <at address="0x7806">
+    <label>rst18_vctr</label>
+    <comment>
+      Call to RST 18H implementation,<br />
+      by default, a jump to 0x1c90
+    </comment>
+  </at>
+  <at address="0x7809">
+    <label>rst20_vctr</label>
+    <comment>
+      Call to RST 20H implementation,<br />
+      by default, a jump to 0x25d9
+    </comment>
+  </at>
+  <at address="0x780c">
+    <label>rst28_vctr</label>
+    <comment>
+      Call to RST 28H implementation,<br />
+      by default, "RET"
+    </comment>
+  </at>
+  <at address="0x780f">
+    <label>rst30_vctr</label>
+    <comment>
+      Call to RST 30H implementation,<br />
+      by default, "RET"
+    </comment>
+  </at>
+  <at address="0x7816">
+    <label>kbd_scan_addr</label>
+    <data-bytes length="0x2" />
+    <comment>
+      address of kbd matrix scan subroutine,<br />
+      usually 0x2ef4
+    </comment>
+  </at>
+  <at address="0x7818">
+    <label>dsp_mode</label>
+    <data-bytes length="0x1" />
+    <comment>
+      text display mode<br />
+      0x00: normal<br />
+      0x01: inverse
+    </comment>
+  </at>
+  <at address="0x7819">
+    <label>dsp_mode_mask</label>
+    <data-bytes length="0x1" />
+    <comment>
+      text display mode mask(?)<br />
+      bits 0, 1, 2, 3, 4: always(?) 0<br />
+      bit 5 = 0 and bit 6 = 0: bright text on dark back<br />
+      bit 5 = 1 and bit 6 = 1: dark text on bright back<br />
+      bit 7: always(?) 0
+    </comment>
+  </at>
+  <at address="0x781b">
+    <data-bytes length="0x3" />
+  </at>
+  <at address="0x781e">
+    <label>vlt_start_tmp</label>
+    <data-bytes length="0x2" />
+    <comment>
+      prospective new value of memory pointer to<br />
+      end of BASIC program / start of simple variables<br />
+      list table ("VLT"), while load is still in progress
+    </comment>
+  </at>
+  <at address="0x7820">
+    <label>curs_addr</label>
+    <data-bytes length="0x2" />
+    <comment>
+      memory pointer to video RAM address<br />
+      of cursor position
+    </comment>
+  </at>
+  <at address="0x7822">
+    <data-bytes length="0x1" />
+  </at>
+  <at address="0x7823">
+    <label>cass_chk_sum</label>
+    <comment>
+      16 bits check sum for cassette<br />
+      load / save operations
+    </comment>
+    <data-bytes length="0x2" />
+  </at>
+  <at address="0x7825">
+    <data-bytes length="0xe" />
+  </at>
+  <at address="0x7836">
+    <label>kbd_key</label>
+    <data-bytes length="0x1" />
+    <comment>
+      when editing, ASCII of least scanned key,<br />
+      or 0, if no key pressed
+    </comment>
+  </at>
+  <at address="0x7838">
+    <label>prt_mode</label>
+    <data-bytes length="0x1" />
+    <comment>
+      bit 1=0: INVERSE off<br />
+      bit 1=1: INVERSE on
+    </comment>
+  </at>
+  <at address="0x7839">
+    <label>cout_mode</label>
+    <data-bytes length="0x1" />
+    <comment>
+      operation mode:<br />
+      bit 0=0: cursor off<br />
+      bit 0=1: cursor on<br />
+      bit 3=0, bit 6=0: CLOAD in progress<br />
+      bit 3=1: VERIFY in progress<br />
+      bit 6=1: CRUN in progress<br />
+      bit 5=0: direct (sync), fast print into video RAM<br />
+      bit 5=1: delayed (async), flicker-free print into video RAM
+    </comment>
+  </at>
+  <at address="0x783a">
+    <data-bytes length="0x1" />
+  </at>
+  <at address="0x783b">
+    <label>o_latch_bkp</label>
+    <header>copy of output latch</header>
+    <data-bytes length="0x1" />
+    <comment>
+      since different I/O devices<br />
+      (speaker, cassette, CRT control)<br />
+      share same address, need to remember<br />
+      status of latch for next write:<br />
+      * bit 0: speaker membrane status 1<br />
+      * bit 1: cassette out status 1<br />
+      * bit 2: cassette out status 2<br />
+      * bit 3=0: text mode<br />
+      * bit 3=1: graphics mode<br />
+      * bit 4=0: green color mode<br />
+      * bit 4=1: red color mode<br />
+      * bit 5: speaker membrane status 2<br />
+    </comment>
+  </at>
+  <at address="0x783c">
+    <label>curs_content</label>
+    <data-bytes length="0x1" />
+    <comment>video RAM contents at cursor position</comment>
+  </at>
+  <at address="0x7841">
+    <label>curs_blk_cnt</label>
+    <data-bytes length="0x1" />
+    <comment>counter variable for cursor blinking</comment>
+  </at>
+  <at address="0x7846">
+    <label>color_mask</label>
+    <data-bytes length="0x1" />
+    <comment>
+      color mask for foreground color in text mode:<br />
+      ccc00000, where ccc is the color<br />
+      code 0, ..., 7 (for colors 1, ..., 8).
+    </comment>
+  </at>
+  <at address="0x784c">
+    <label>css_data_rdy</label>
+    <data-bytes length="0x1" />
+    <comment>toggle, if cass needs attention</comment>
+  </at>
+  <at address="0x787d">
+    <label>cb_irq</label>
+    <comment>
+      callback envoked whenever returning from IRQ;<br />
+      default is a simple "RET", i.e. do nothing
+    </comment>
+  </at>
+  <at address="0x7880">
+    <data-bytes length="0xd" />
+  </at>
+  <at address="0x788e">
+    <label>vect_fn_usr</label>
+    <data-bytes length="0x2" />
+    <comment>
+      vector to USR() implementation<br />
+      default is 0x1e4a, which will<br />
+      print "?FUNCTION CODE ERROR"
+    </comment>
+  </at>
+  <at address="0x7890">
+    <data-bytes length="0x9" />
+  </at>
+  <at address="0x7899">
+    <label>kbdscan_val</label>
+    <data-bytes length="0x1" />
+    <comment>
+      ASCII of least scanned key,<br />
+      while running a command or program,<br />
+      or 0, if no key pressed
+    </comment>
+  </at>
+  <at address="0x789a">
+    <label>last_err</label>
+    <data-bytes length="0x1" />
+    <comment>
+      error code of last error:<br />
+      * 0x00 NEXT WITHOUT FOR ERROR?<br />
+      * 0x02 SYNTAX ERROR?<br />
+      * 0x04 RET'N WITHOUT GOSUB ERROR?<br />
+      * 0x06 OUT OF DATA ERROR?<br />
+      * 0x08 FUNCTION CODE ERROR?<br />
+      * 0x0a OVERFLOW ERROR?<br />
+      * 0x0c OUT OF MEMORY ERROR?<br />
+      * 0x0e UNDEF'D STATEMENT ERROR?<br />
+      * 0x10 BAD SUBSCRIPT ERROR?<br />
+      * 0x12 REDIM'D ARRAY ERROR?<br />
+      * 0x14 DIVISION BY ZERO ERROR?<br />
+      * 0x16 ILLEGAL DIRECT ERROR?<br />
+      * 0x18 TYPE MISMATCH ERROR?<br />
+      * 0x1a OUT OF SPACE ERROR?<br />
+      * 0x1c STRING TOO LONG ERROR?<br />
+      * 0x1e FORMULA TOO COMPLEX ERROR?<br />
+      * 0x20 CAN'T CONT ERROR?<br />
+      * 0x22 NO RESUME ERROR?<br />
+      * 0x24 RESUME WITHOUT ERROR?<br />
+      * 0x26 UNPRINTABLE ERROR?<br />
+      * 0x28 MISSING OPERAND ERROR?<br />
+      * 0x2a BAD FILE DATA ERROR?<br />
+      * 0x2c DISK COMMAND SYNTAX ERROR?<br />
+    </comment>
+  </at>
+  <at address="0x789c">
+    <label>cout_target</label>
+    <data-bytes length="0x1" />
+    <comment>
+      currently selected standard output device:<br />
+      * 0x00 = screen,<br />
+      * 0x01 = printer,<br />
+      * 0xff = cassette
+    </comment>
+  </at>
+  <at address="0x789d">
+    <data-bytes length="0x3" />
+  </at>
+  <at address="0x78a0">
+    <label>str_var_area</label>
+    <data-bytes length="0x2" />
+    <comment>
+      memory pointer to end of basic stack memory /<br />
+      start of string variable storage area
+    </comment>
+  </at>
+  <at address="0x78a2">
+    <label>curr_line_no</label>
+    <data-bytes length="0x2" />
+    <comment>
+      program line number of currently<br />
+      executed code
+    </comment>
+  </at>
+  <at address="0x78a4">
+    <label>prgmem_start</label>
+    <data-bytes length="0x2" />
+    <comment>memory pointer to start of BASIC program</comment>
+  </at>
+  <at address="0x78a6">
+    <label>curs_x</label>
+    <data-bytes length="0x1" />
+    <comment>
+      current x coordinate of cursor within<br />
+      current line with 0x00&lt;=x&lt;=0x1f for<br />
+      single lines or 0x00&lt;=x&lt;=0x3f for<br />
+      double lines
+    </comment>
+  </at>
+  <at address="0x78a7">
+    <label>parse_in_loc</label>
+    <data-bytes length="0x2" />
+    <comment>
+      memory pointer to video RAM address<br />
+      where to parse INPUT command input values
+    </comment>
+  </at>
+  <at address="0x78af">
+    <label>args_cnt</label>
+    <data-bytes length="0x1" />
+    <comment>
+      number of parameters to copy upon<br />
+      subroutine call(?)
+    </comment>
+  </at>
+  <at address="0x78b1">
+    <label>freemem_top</label>
+    <data-bytes length="0x2" />
+    <comment>
+      memory pointer to top of memory /<br />
+      end of string storage area
+    </comment>
+  </at>
+  <at address="0x78b3">
+    <data-bytes length="0x5" />
+  </at>
+  <at address="0x78d3">
+    <label>tmp_byte</label>
+    <data-bytes length="0x1" />
+    <comment>
+      temporary variable space for e.g.<br />
+      number of characters to print
+    </comment>
+  </at>
+  <at address="0x78d4">
+    <label>tmp_ptr</label>
+    <data-bytes length="0x2" />
+    <comment>
+      temporary pointer to e.g.<br />
+      memory start address of characters to print
+    </comment>
+  </at>
+  <at address="0x78d6">
+    <label>ram_mem_top</label>
+    <data-bytes length="0x2" />
+    <comment>
+      memory pointer to RAM upper limit
+    </comment>
+  </at>
+  <at address="0x78df">
+    <data-bytes length="0x2" />
+  </at>
+  <at address="0x78e8">
+    <data-bytes length="0x2" />
+  </at>
+  <at address="0x78ec">
+    <label>edit_line_no</label>
+    <data-bytes length="0x2" />
+    <comment>
+      number of least changed BASIC<br />
+      program line
+    </comment>
+  </at>
+  <at address="0x78f3">
+    <label>lin_proc_buf</label>
+    <data-bytes length="0x2" />
+    <comment>
+      memory pointer to buffer (typically at<br />
+      0x79ee) for processing current program line
+    </comment>
+  </at>
+  <at address="0x78f9">
+    <label>vlt_start</label>
+    <data-bytes length="0x2" />
+    <comment>
+      memory pointer to end of BASIC program /<br />
+      start of simple variables list table ("VLT")
+    </comment>
+  </at>
+  <at address="0x78fb">
+    <label>dim_start</label>
+    <data-bytes length="0x2" />
+    <comment>
+      memory pointer to start of DIM'd variables list
+    </comment>
+  </at>
+  <at address="0x78fd">
+    <label>var_end</label>
+    <data-bytes length="0x2" />
+    <comment>
+      memory pointer to first address behind<br />
+      variables store
+    </comment>
+  </at>
+  <at address="0x78ff">
+    <label>next_data</label>
+    <data-bytes length="0x2" />
+    <comment>
+      memory pointer into BASIC program,<br />
+      pointing to address directly after DATA value<br />
+      that has been last read
+    </comment>
+  </at>
+  <at address="0x7901">
+    <label>var_re-label</label>
+    <data-bytes length="0x1a" />
+    <comment>
+      used for (re)mapping variable names "A" through "Z"<br />
+      example: 0x03 in 0x7901 will make variable "A$"<br />
+      accessible as "A"; default is 0x04
+    </comment>
+  </at>
+  <at address="0x791b">
+    <label>trace_status</label>
+    <data-bytes length="0x1" />
+    <comment>
+      if trace is on, print current line number<br />
+      while executing BASIC commands<br />
+      * bit 0=0: NOTRACE, trace off<br />
+      * bit 0=1: TRACE, trace on
+    </comment>
+  </at>
+  <at address="0x7921">
+    <label>op_buf</label>
+    <data-bytes length="0x2" />
+    <comment>
+      (1) temporary division remainder while<br />
+      converting 16 bit value into string, or<br />
+      (2) temporary sum while parsing an<br />
+      integer number from a string
+    </comment>
+  </at>
+  <at address="0x7931">
+    <label>tmp_ch_buf</label>
+    <data-bytes length="0x20" />
+    <comment>
+      temporary character buffer used by PRINT command
+    </comment>
+  </at>
+  <at address="0x795b">
+    <label>cmd_dsk_err1</label>
+    <comment>
+      jump to handler for (hidden) token 0xb0<br />
+      defaults to a jump to 0x012d, which emits<br />
+      a (faulty) "?DISK COMMAND ERROR" message
+    </comment>
+  </at>
+  <at address="0x7973">
+    <label>cmd_dsk_err2</label>
+    <comment>
+      jump to handler for (hidden) token 0x85<br />
+      defaults to a jump to 0x012d, which emits<br />
+      a (faulty) "?DISK COMMAND ERROR" message
+    </comment>
+  </at>
+  <at address="0x7979">
+    <label>cmd_dsk_err3</label>
+    <comment>
+      jump to handler for (hidden) token 0xa2<br />
+      defaults to a jump to 0x012d, which emits<br />
+      a (faulty) "?DISK COMMAND ERROR" message
+    </comment>
+  </at>
+  <at address="0x797c">
+    <label>cmd_dsk_err4</label>
+    <comment>
+      jump to handler for (hidden) token 0xa3<br />
+      defaults to a jump to 0x012d, which emits<br />
+      a (faulty) "?DISK COMMAND ERROR" message
+    </comment>
+  </at>
+  <at address="0x797f">
+    <label>cmd_dsk_err5</label>
+    <comment>
+      jump to handler for (hidden) token 0xa4<br />
+      defaults to a jump to 0x012d, which emits<br />
+      a (faulty) "?DISK COMMAND ERROR" message
+    </comment>
+  </at>
+  <at address="0x7982">
+    <label>cmd_dsk_err6</label>
+    <comment>
+      jump to handler for (hidden) token 0xa5<br />
+      defaults to a jump to 0x012d, which emits<br />
+      a (faulty) "?DISK COMMAND ERROR" message
+    </comment>
+  </at>
+  <at address="0x7985">
+    <label>cmd_dsk_err7</label>
+    <comment>
+      jump to handler for (hidden) token 0xa6<br />
+      defaults to a jump to 0x012d, which emits<br />
+      a (faulty) "?DISK COMMAND ERROR" message
+    </comment>
+  </at>
+  <at address="0x7988">
+    <label>cmd_dsk_err8</label>
+    <comment>
+      jump to handler for (hidden) token 0xa7<br />
+      defaults to a jump to 0x012d, which emits<br />
+      a (faulty) "?DISK COMMAND ERROR" message
+    </comment>
+  </at>
+  <at address="0x798b">
+    <label>cmd_dsk_err9</label>
+    <comment>
+      jump to handler for (hidden) token 0xa8<br />
+      defaults to a jump to 0x012d, which emits<br />
+      a (faulty) "?DISK COMMAND ERROR" message
+    </comment>
+  </at>
+  <at address="0x798e">
+    <label>cmd_dsk_err10</label>
+    <comment>
+      jump to handler for (hidden) token 0xa9<br />
+      defaults to a jump to 0x012d, which emits<br />
+      a (faulty) "?DISK COMMAND ERROR" message
+    </comment>
+  </at>
+  <at address="0x7991">
+    <label>cmd_dsk_err11</label>
+    <comment>
+      jump to handler for (hidden) token 0xaa<br />
+      defaults to a jump to 0x012d, which emits<br />
+      a (faulty) "?DISK COMMAND ERROR" message
+    </comment>
+  </at>
+  <at address="0x7997">
+    <label>cmd_dsk_err12</label>
+    <comment>
+      jump to handler for (hidden) token 0xab<br />
+      defaults to a jump to 0x012d, which emits<br />
+      a (faulty) "?DISK COMMAND ERROR" message
+    </comment>
+  </at>
+  <at address="0x799a">
+    <label>cmd_dsk_err13</label>
+    <comment>
+      jump to handler for (hidden) token 0xac<br />
+      defaults to a jump to 0x012d, which emits<br />
+      a (faulty) "?DISK COMMAND ERROR" message
+    </comment>
+  </at>
+  <at address="0x79a0">
+    <label>cmd_dsk_err14</label>
+    <comment>
+      jump to handler for (hidden) token 0xad<br />
+      defaults to a jump to 0x012d, which emits<br />
+      a (faulty) "?DISK COMMAND ERROR" message
+    </comment>
+  </at>
+  <at address="0x79a6">
+    <label>cb_error</label>
+    <comment>
+      callback envoked whenever an error has reported;<br />
+      default is a simple "RET", i.e. do nothing
+    </comment>
+  </at>
+  <at address="0x79ac">
+    <label>cb_ready</label>
+    <comment>
+      callback envoked whenever "READY" is reported;<br />
+      default is a simple "RET", i.e. do nothing
+    </comment>
+  </at>
+  <at address="0x79b2">
+    <label>cb_new_line</label>
+    <comment>
+      callback envoked whenever a line has been entered;<br />
+      default is a simple "RET", i.e. do nothing
+    </comment>
+  </at>
+  <at address="0x79b5">
+    <label>cb_prg_chg1</label>
+    <comment>
+      callback envoked whenever a program line is changed;<br />
+      default is a simple "RET", i.e. do nothing
+    </comment>
+  </at>
+  <at address="0x79b8">
+    <label>cb_prg_chg2</label>
+    <comment>
+      callback envoked whenever a program line is changed;<br />
+      default is a simple "RET", i.e. do nothing
+    </comment>
+  </at>
+  <at address="0x79bb">
+    <label>cb_prg_chg3</label>
+    <comment>
+      callback envoked whenever a program line is changed;<br />
+      default is a simple "RET", i.e. do nothing
+    </comment>
+  </at>
+  <at address="0x79be">
+    <label>cb_prg_mod</label>
+    <comment>
+      callback envoked whenever a program line is changed,<br />
+      or RUN or PRINT or CLEAR is executed or an error<br />
+      message is reported;<br />
+      default is a simple "RET", i.e. do nothing
+    </comment>
+  </at>
+  <at address="0x79c1">
+    <label>cb_cout</label>
+    <comment>
+      callback envoked whenever printing out a character;<br />
+      default is a simple "RET", i.e. do nothing
+    </comment>
+  </at>
+  <at address="0x79c4">
+    <label>cb_cmd</label>
+    <comment>
+      callback envoked whenever any BASIC command is executed;<br />
+      default is a simple "RET", i.e. do nothing
+    </comment>
+  </at>
+  <at address="0x79ca">
+    <label>cb_prt</label>
+    <comment>
+      callback envoked whenever any PRINT command is executed;<br />
+      default is a simple "RET", i.e. do nothing
+    </comment>
+  </at>
+  <at address="0x79cd">
+    <label>cb_prt_expr</label>
+    <comment>
+      callback envoked whenever any BASIC expression is PRINTed;<br />
+      default is a simple "RET", i.e. do nothing
+    </comment>
+  </at>
+  <at address="0x79d0">
+    <label>cb_cout_spcl</label>
+    <comment>
+      callback envoked whenever special control<br />
+      characters are printed (e.g. "PRINT CHR$(13)");<br />
+      default is a simple "RET", i.e. do nothing
+    </comment>
+  </at>
+  <at address="0x79e8">
+    <label>prg_inp_buf</label>
+    <data-bytes length="0x40" />
+    <header>---- START BASIC line input buffer ----</header>
+    <comment>
+      BASIC line input buffer
+    </comment>
+  </at>
+  <at address="0x79ee">
+    <label>prg_ln_buf</label>
+    <header>---- working buf for currently executed BASIC prg line ----</header>
+  </at>
+  <at address="0x7a27">
+    <footer>---- END BASIC line input buffer ----</footer>
+  </at>
+  <at address="0x7a9d">
+    <label>fname_buf</label>
+    <data-bytes length="0x11" />
+    <header>
+      ---- START file name buffer ----<br />
+      file name buffer for currently processed cassette file,<br />
+      max. 16 characters + trailing "\0"
+    </header>
+  </at>
+  <at address="0x7ae6">
+    <data-bytes length="0x1" />
+  </at>
+  <at address="0x7aad">
+    <footer>---- END file name buffer ----</footer>
+  </at>
+  <at address="0x7aae">
+    <label>next_crs_x</label>
+    <data-bytes length="0x1" />
+    <comment>
+      x coordinate where to place cursor<br />
+      after next text buffer to screen copy
+    </comment>
+  </at>
+  <at address="0x7aaf">
+    <label>cout_buf_avl</label>
+    <data-bytes length="0x1" />
+    <comment>
+      current number of bytes available in the<br />
+      2 text lines print buffer available for<br />
+      copying into the video RAM upon the next<br />
+      video gap IRQ for flicker-free display
+    </comment>
+  </at>
+  <at address="0x7ab0">
+    <label>cout_scr_adr</label>
+    <data-bytes length="0x2" />
+    <comment>
+      pointer to address within screen print<br />
+      buffer where to put the next char
+    </comment>
+  </at>
+  <at address="0x7ab2">
+    <label>cout_buf</label>
+    <data-bytes length="0x20" />
+    <header>
+      ---- START print buffer ----<br />
+      2 text lines print buffer available for<br />
+      copying into the video RAM upon the next<br />
+      video gap IRQ for flicker-free display
+    </header>
+  </at>
+  <at address="0x7ad1">
+    <footer>---- END print buffer ----</footer>
+  </at>
+  <at address="0x7ad2">
+    <label>audio_byte</label>
+    <data-bytes length="0x1" />
+    <comment>
+      used for two different, independent purposes:<br />
+      (1) SOUND pitch of currently played sound<br />
+      (2) received data byte while reading from cassette
+    </comment>
+  </at>
+  <at address="0x7ad3">
+    <label>cass_tmp_db</label>
+    <data-bytes length="0x1" />
+    <comment>
+      temporary store for single data byte<br />
+      while reading stream of bytes from cassette
+    </comment>
+  </at>
+  <at address="0x7ad6">
+    <label>fname_len</label>
+    <data-bytes length="0x1" />
+    <comment>
+      file name length (including trailing "\0")<br />
+      of the currently handled file
+    </comment>
+  </at>
+  <at address="0x7ad7">
+    <label>line_exts</label>
+    <data-bytes length="0xf" />
+    <header>
+      ---- START line extension flags ----<br />
+      for each text screen line, remember if it<br />
+      extends onto the next line, thus composing<br />
+      a double line
+    </header>
+  </at>
+  <at address="0x7ae5">
+    <footer>---- END line extension flags ----</footer>
+  </at>
+  <at address="0x7ae9">
+    <label>prg_start</label>
+    <header>
+      start of memory area for BASIC program text and variables
+    </header>
+  </at>
+</annotations>
+
+<!--
+    Local Variables:
+      coding:utf-8
+      mode:xml
+    End:
+-->

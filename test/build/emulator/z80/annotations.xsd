@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE schema [
+  <!ENTITY ann "http://www.soundpaint.org/2018/Z80-Emulator/Annotations">
+]>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:ann="&ann;"
+           targetNamespace="&ann;"
+           elementFormDefault="qualified">
+  <xs:element name="annotations" type="ann:AnnotationsType" />
+
+  <xs:complexType name="AnnotationsType">
+    <xs:sequence>
+      <xs:element name="meta" type="ann:MetaElementType" minOccurs="0" />
+      <xs:element name="at" type="ann:AtElementType"
+                  minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="MetaElementType" />
+
+  <xs:complexType name="AtElementType">
+    <xs:sequence>
+      <xs:element name="label" type="ann:LabelTextType" minOccurs="0" />
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="header" type="ann:MultiLineTextType" />
+        <xs:element name="footer" type="ann:MultiLineTextType" />
+        <xs:element name="comment" type="ann:MultiLineTextType" />
+        <xs:element name="data-bytes" type="ann:DataBytesElementType" />
+      </xs:choice>
+    </xs:sequence>
+    <xs:attribute name="address" type="ann:HexWordType" />
+  </xs:complexType>
+
+  <xs:complexType name="DataBytesElementType" mixed="true">
+    <xs:attribute name="length" type="ann:HexWordType" default="0x01" />
+  </xs:complexType>
+
+  <xs:complexType name="MultiLineTextType" mixed="true">
+    <xs:sequence>
+      <xs:element name="br" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:simpleType name="HexWordType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="0[Xx][A-Fa-f0-9]{1,4}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="LabelTextType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[A-Za-z_][0-9A-Za-z_-]*"/>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>
+
+<!--
+    Local Variables:
+      coding:utf-8
+      mode:xml
+    End:
+-->

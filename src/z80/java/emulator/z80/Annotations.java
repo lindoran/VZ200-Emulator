@@ -19,7 +19,7 @@ import org.w3c.dom.ProcessingInstruction;
 import org.w3c.dom.Text;
 
 public class Annotations {
-  private static final String SCHEMA_RESOURCE_NAME = "./annotations.xsd";
+  private static final String SCHEMA_RESOURCE_NAME = "annotations.xsd";
   private static final String ATTRIBUTE_NAME_ADDRESS = "address";
   private static final String ATTRIBUTE_NAME_LENGTH = "length";
   private static final String TAG_NAME_ANNOTATIONS = "annotations";

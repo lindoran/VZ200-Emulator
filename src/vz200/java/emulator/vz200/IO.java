@@ -17,6 +17,7 @@ public class IO implements
 {
   private final static int DEFAULT_BASE_ADDRESS = 0x6800;
   private final static int MEMORY_SIZE = 0x0800;
+  private final static long AUDIO_TICK_NANOS = 1000000L;
 
   private final static CassetteInputSampler CLOSED_INPUT_SAMPLER =
     new CassetteInputSampler() {
@@ -42,8 +43,9 @@ public class IO implements
   private final Speaker speaker;
   private final CassetteCtrlRoomOut cassetteCtrlRoomOut;
   private final CassetteFileOut cassetteFileOut;
-  private final MonoAudioStreamRenderer speakerRenderer;
-  private final MonoAudioStreamRenderer cassetteCtrlRoomOutRenderer;
+  private final AudioOutput speakerOutput;
+  private final AudioOutput cassetteOutput;
+  private long nextAudioTickTime;
   private FileStreamRenderer fileStreamRenderer;
   private CassetteInputSampler cassetteInputSampler;
   private long timePerClockCycle;
@@ -64,29 +66,34 @@ public class IO implements
     keyboard = new Keyboard(baseAddress);
     video = new Video();
     video.addKeyListener(keyboard.getKeyListener());
-    speakerRenderer = new MonoAudioStreamRenderer("speaker renderer");
-    speaker = new Speaker(this);
-    speakerRenderer.setSignalEventSource(speaker);
-    speakerRenderer.start();
-    cassetteCtrlRoomOutRenderer =
-      new MonoAudioStreamRenderer("cassette out renderer");
-    cassetteCtrlRoomOut = new CassetteCtrlRoomOut(this);
-    cassetteCtrlRoomOutRenderer.setSignalEventSource(cassetteCtrlRoomOut);
-    cassetteCtrlRoomOutRenderer.start();
+    final UserPreferences prefs = UserPreferences.getInstance();
+    speakerOutput =
+      new AudioOutput("speaker", AudioOutputControl.DeviceSupport.
+                      effective(prefs.getSpeakerMixer()), true);
+    speaker = new Speaker(speakerOutput);
+    cassetteOutput =
+      new AudioOutput("cassette monitor", AudioOutputControl.DeviceSupport.
+                      effective(prefs.getCassetteOutMixer()),
+                      !prefs.getCassetteOutMuted());
+    cassetteCtrlRoomOut = new CassetteCtrlRoomOut(cassetteOutput);
     cassetteFileOut = new CassetteFileOut(this);
-    settingsGUI = new SettingsGUI(cpuControl, cpu, speaker, speakerRenderer,
-                                  cassetteCtrlRoomOut,
-                                  cassetteCtrlRoomOutRenderer,
+    settingsGUI = new SettingsGUI(cpuControl, cpu, speaker, speakerOutput,
+                                  cassetteCtrlRoomOut, cassetteOutput,
                                   this);
+    // the settings panels have applied the saved volume / mute / device
+    speakerOutput.start();
+    cassetteOutput.start();
     settingsGUI.addTransportListener(this);
     cassetteInputSampler = CLOSED_INPUT_SAMPLER;
   }
 
   public void resync(final long wallClockTime)
   {
-    speaker.resync();
+    if (speaker != null) {
+      speaker.resync(wallClockTime);
+    }
     if (cassetteCtrlRoomOut != null) {
-      cassetteCtrlRoomOut.resync();
+      cassetteCtrlRoomOut.resync(wallClockTime);
     }
     if (cassetteFileOut != null) {
       cassetteFileOut.resync();
@@ -198,6 +205,12 @@ public class IO implements
     this.timePerClockCycle = timePerClockCycle;
     this.wallClockCycles = wallClockCycles;
     this.wallClockTime = wallClockTime;
+    if (wallClockTime >= nextAudioTickTime) {
+      // hand finished audio samples on about once per emulated ms
+      nextAudioTickTime = wallClockTime + AUDIO_TICK_NANOS;
+      speaker.tick(wallClockTime);
+      cassetteCtrlRoomOut.tick(wallClockTime);
+    }
     if (video.updateWallClock(wallClockCycles, wallClockTime)) {
       cpuControl.requestIRQ();
     }
