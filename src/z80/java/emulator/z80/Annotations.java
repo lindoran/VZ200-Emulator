@@ -519,18 +519,6 @@ public class Annotations {
     }
   }
 
-  public void loadFromResource(String resourcePath) throws ParseException {
-    URL resourceUrl;
-    try {
-      resourceUrl = new URL(resourcePath);
-    } catch (MalformedURLException e) {
-      throw
-        new ParseException("failed loading annotations: bad resource path: " +
-                           resourcePath, e);
-    }
-    loadFromResource(resourceUrl);
-  }
-
   public void loadFromFile(File file) throws ParseException {
     URL resourceUrl;
     try {

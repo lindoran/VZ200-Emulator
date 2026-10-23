@@ -26,10 +26,18 @@ import emulator.z80.MemoryBus;
  *   use them the other way round, which is what is modelled here.
  *
  *   Memory
- *     $4000-$67FF  DOS area: EPROM (VZDOS firmware) or SRAM (2 banks).
- *                  Writes always go to SRAM, even while the EPROM is selected.
+ *     $4000-$5FFF  EPROM (VZDOS firmware) while port 55 bit0 = 0, else SRAM.
+ *     $6000-$67FF  Always SRAM; the EPROM does not reach this 2K.
+ *     $4000-$67FF  SRAM bank chosen by port 55 bit1.
  *     $9000 or $B800 up to $FFFF
  *                  Loader SRAM, 2 banks (bit2 of port 55).
+ *     Every memory write also reaches the SRAM, at the CPU address, whatever
+ *     the area (the CPLD asserts SRAM chip select on any write).  It only
+ *     becomes visible where the SRAM is later read, e.g. data written to
+ *     $9000-$B7FF while the VZ300 map is on is there after switching back to
+ *     the VZ200 map.
+ *     (Decode taken from the CPLD source VZ300.vhd; the SRAM top address line
+ *     is the bank bit selected by CPU A15: A15=1 -> bit 2, A15=0 -> bit 1.)
  *
  * Not modelled: the SNES pad ports, SPI timing, EPROM write-protect.
  */
@@ -114,10 +122,11 @@ public class SDLoader
   private int memRead(final int a)
   {
     if (a >= DOS_START && a <= DOS_END) {
-      if ((bank & 0x01) != 0) {
-        return dosSram[(bank >> 1) & 1][a - DOS_START];
+      final int off = a - DOS_START;
+      if (off < EPROM_SIZE && (bank & 0x01) == 0) {
+        return eprom[off];                       // EPROM covers $4000-$5FFF only
       }
-      return a - DOS_START < EPROM_SIZE ? eprom[a - DOS_START] : 0xff;
+      return dosSram[(bank >> 1) & 1][off];      // $6000-$67FF is always SRAM
     }
     if (a >= hiStart() && a <= 0xffff) {
       return hiSram[(bank >> 2) & 1][a - HI_START];
@@ -129,7 +138,9 @@ public class SDLoader
   {
     if (a >= DOS_START && a <= DOS_END) {
       dosSram[(bank >> 1) & 1][a - DOS_START] = v & 0xff;
-    } else if (a >= hiStart() && a <= 0xffff) {
+    } else if (a >= HI_START && a <= 0xffff) {
+      // Any write reaches the SRAM; with the VZ300 map $9000-$B7FF is not
+      // readable from the loader, but the data is there for the VZ200 map.
       hiSram[(bank >> 2) & 1][a - HI_START] = v & 0xff;
     }
   }

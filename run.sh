@@ -4,7 +4,7 @@ set -eu
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
 usage() {
-  echo "Usage: $0 {stock|sd-loader} [emulator options...]" >&2
+  echo "Usage: $0 {stock|sd-loader|rc39} [emulator options...]" >&2
   exit 2
 }
 
@@ -19,6 +19,9 @@ case "$mode" in
   sd-loader)
     set -- --os-rom "$ROOT/BIOS/VZ200_20.bin" \
       --dos-rom "$ROOT/SD/VZDOS.VZ" --sd-dir "$ROOT/SD" "$@"
+    ;;
+  rc39)
+    set -- --os-rom "$ROOT/BIOS/VZ200_20.bin" --rc39 "$@"
     ;;
   *)
     usage

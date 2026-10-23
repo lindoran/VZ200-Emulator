@@ -1,6 +1,9 @@
 VZ200 / Z80 Emulator
 ====================
 
+Modes: stock VZ200 (default), Benn Venn SD loader (`SD_LOADER.md`), and an
+opt-in RC39 Backplane Clone memory map (`--rc39`, see `RC39.md`).
+
 This project features a software emulation of the complete hardware of
 a Z80 CPU and a VZ200 computer based on that CPU.
 

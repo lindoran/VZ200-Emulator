@@ -47,8 +47,15 @@ VZDOS tries port 58 = 1 and falls back to 0 if there is no RAM at $9100
 (VZ300 / VZ200 detection), and its self-update stub writes port 55 = 1 before
 copying itself into $4000.
 
-Memory: $4000-$67FF DOS area (EPROM $4000-$5FFF, 2 SRAM banks; writes always go
-to SRAM), loader SRAM from $9000 or $B800 (per port 58) to $FFFF in 2 banks.
+Memory (decode checked against the loader's CPLD source, VZ300.vhd): EPROM at
+$4000-$5FFF while port 55 bit0 = 0; $6000-$67FF is always SRAM (the EPROM does
+not reach it, so it never reads $FF); the DOS-area SRAM bank is port 55 bit1;
+loader SRAM from $9000 or $B800 (per port 58) to $FFFF in 2 banks (port 55
+bit2). Every memory write also reaches the SRAM, whatever the address, so data
+written to $9000-$B7FF under the VZ300 map is still there after switching to
+the VZ200 map. The bank bit is the SRAM's top address line, chosen by CPU A15,
+so the two pages span $8000-$FFFF even though the loader only answers from
+$9000/$B800.
 Use `--vz300-ram` to give the machine 18 KB of its own RAM ($7800-$B7FF) like a
 VZ300; without it the machine has 6 KB and VZDOS detects VZ200 mode.
 The SD card is an SPI-mode SDHC card: CMD0, 8, 12, 13, 16, 17, 24, 55, 58,

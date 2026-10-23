@@ -56,7 +56,16 @@ public class SDLoaderTest
     check(m.readByte(0x4000, 0) == 0xaa && m.readByte(0x4001, 0) == 0x55 &&
           m.readByte(0x4002, 0) == 0xe7 && m.readByte(0x4003, 0) == 0x18,
           "EPROM visible at $4000 after reset (AA 55 E7 18)");
-    check(m.readByte(0x6000, 0) == 0xff, "$6000-$67FF reads $FF while EPROM selected");
+    check(m.readByte(0x6000, 0) == 0x00, "$6000-$67FF is SRAM even while the EPROM is selected (not $FF)");
+    m.writeByte(0x6000, 0x3c, 0);
+    check(m.readByte(0x6000, 0) == 0x3c, "$6000: write is readable back with EPROM selected");
+    out(p, 0x37, 0x02);
+    check(m.readByte(0x6000, 0) == 0x00, "$6000-$67FF follows the DOS SRAM bank (port 55 bit1)");
+    out(p, 0x37, 0x00);
+    check(m.readByte(0x6000, 0) == 0x3c, "$6000 bank 0 kept its value");
+    final int eprom5fff = m.readByte(0x5fff, 0);
+    m.writeByte(0x5fff, 0x99, 0);
+    check(m.readByte(0x5fff, 0) == eprom5fff, "$4000-$5FFF still reads the EPROM, not the SRAM");
     m.writeByte(0x4100, 0x5a, 0);
     check(m.readByte(0x4100, 0) != 0x5a, "write with EPROM selected does not change what is read");
     out(p, 0x37, 0x01);
@@ -83,6 +92,13 @@ public class SDLoaderTest
     check(m.readByte(0xb800, 0) == 0x42, "VZ300 map: loader RAM from $B800");
     out(p, 0x3a, 0x00);
     check(m.readByte(0x9100, 0) == 0xa5, "back to VZ200 map: $9100 data intact");
+    out(p, 0x3a, 0x01);
+    m.writeByte(0x9200, 0x5a, 0);              // VZ300 map: stock RAM area, still hits SRAM
+    m.writeByte(0x8100, 0x77, 0);              // below the loader RAM: never readable
+    check(m.readByte(0x9200, 0) == 0xff, "VZ300 map: $9200 not answered by the loader");
+    out(p, 0x3a, 0x00);
+    check(m.readByte(0x9200, 0) == 0x5a, "every write reaches the SRAM: $9200 visible after switching to VZ200 map");
+    check(m.readByte(0x8100, 0) == 0xff, "$8100 is never answered by the loader");
     check(in(p, 0x3a) == 0xff && in(p, 0x38) == 0xff && in(p, 0x37) == 0xff,
           "write-only registers read as undriven bus ($FF)");
   }

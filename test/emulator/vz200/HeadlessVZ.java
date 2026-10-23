@@ -24,6 +24,7 @@ public class HeadlessVZ
   public final MemoryBus mem = new MemoryBus();
   public final MemoryBus ports = new MemoryBus();
   public final SDLoader loader;
+  public final RC39 rc39;
   private final KeyboardMatrix matrix = new KeyboardMatrix();
   private final ArrayDeque<Character> typeQueue = new ArrayDeque<Character>();
   private List<KeyboardMatrix.Key> held;
@@ -61,11 +62,38 @@ public class HeadlessVZ
                     final boolean vz300ram)
     throws IOException
   {
+    this(osRom, dosRom, card, vz300ram, null);
+  }
+
+  /** RC39 Backplane Clone: banked 128K SRAM instead of plain RAM. */
+  public HeadlessVZ(final File osRom, final RC39 rc39) throws IOException
+  {
+    this(osRom, null, null, false, rc39);
+  }
+
+  private HeadlessVZ(final File osRom, final File dosRom, final BlockDevice card,
+                     final boolean vz300ram, final RC39 rc39)
+    throws IOException
+  {
     final boolean sd = dosRom != null;
+    this.rc39 = rc39;
     mem.addWriter(new FileROMMemory(osRom, 0, 0x4000));
-    final RAMMemory ram = new RAMMemory(0x7000, sd ? (vz300ram ? 0xb800 : 0x9000) - 0x7000 : 0x9000);
-    mem.addReader(ram);
-    mem.addWriter(ram);
+    if (rc39 != null) {
+      // VRAM ($7000-$77FF) stays plain RAM, as on the real machine
+      final RAMMemory vram = new RAMMemory(0x7000, 0x800);
+      mem.addReader(vram);
+      mem.addWriter(vram);
+      final RC39.MemoryView mv = rc39.new MemoryView();
+      mem.addReader(mv);
+      mem.addWriter(mv);
+      final RC39.PortView pv = rc39.new PortView();
+      ports.addReader(pv);
+      ports.addWriter(pv);
+    } else {
+      final RAMMemory ram = new RAMMemory(0x7000, sd ? (vz300ram ? 0xb800 : 0x9000) - 0x7000 : 0x9000);
+      mem.addReader(ram);
+      mem.addWriter(ram);
+    }
     final IOStub io = new IOStub();
     mem.addReader(io);
     mem.addWriter(io);

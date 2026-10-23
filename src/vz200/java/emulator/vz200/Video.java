@@ -135,6 +135,20 @@ public class Video extends JFrame
     setVisible(true);
   }
 
+  /**
+   * Gives the screen window the keyboard focus, so typing goes to the
+   * emulated machine right after start-up.  The other windows (settings,
+   * on-screen keyboard) are shown while the emulator is being set up and
+   * would otherwise keep the focus.
+   */
+  public void focusScreen()
+  {
+    javax.swing.SwingUtilities.invokeLater(() -> {
+        toFront();
+        requestFocus();
+      });
+  }
+
   public String toString()
   {
     return String.format("Video[baseAddress=%04xh, videoRAM=%s]",

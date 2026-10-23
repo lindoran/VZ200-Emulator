@@ -55,6 +55,9 @@ public class VZ200
     public boolean vz300Ram;  // 18 KB internal RAM ($7800-$B7FF) like a VZ300
     public boolean sdMbr;     // --sd-dir: partitioned (MBR) card layout
     public boolean sdLoader;  // enable loader hardware even without a card
+    public boolean rc39;      // RC39 Backplane Clone memory map (port 0x70 banking)
+    public File rc39Rom;      // optional ROM image for the RC39 10K window
+    public boolean rc39Trace;
 
     public boolean useSDLoader()
     {
@@ -79,23 +82,44 @@ public class VZ200
     cpuControl = new CPUControl(z80);
     cpuControl.addResourceLocation(VZ200.class);
     final boolean sd = options.useSDLoader();
+    if (options.rc39 && sd) {
+      throw new IllegalArgumentException(
+        "--rc39 cannot be combined with the SD loader options");
+    }
     // With the SD loader fitted, the loader's (bank switched) SRAM
     // supplies the top of memory (from $9000, or $B800 in VZ300 map mode);
     // the machine itself only has 6 KB ($7800-$8FFF), or 18 KB with
     // --vz300-ram.
-    final RAMMemory ram =
+    final RAMMemory ram = options.rc39 ? null :
       new RAMMemory(RAM_START, !sd ? RAM_LENGTH :
                     (options.vz300Ram ? 0xb800 : SDLoader.HI_START) - RAM_START);
     io = new IO(cpuControl, z80, z80.getWallClockTime());
     z80.addWallClockListener(io);
     final Video video = io.getVideo();
-    mainMemoryBus.addReader(ram);
-    mainMemoryBus.addWriter(ram);
+    if (ram != null) {
+      mainMemoryBus.addReader(ram);
+      mainMemoryBus.addWriter(ram);
+    }
     mainMemoryBus.addWriter(rom);
     mainMemoryBus.addReader(io);
     mainMemoryBus.addWriter(io);
     mainMemoryBus.addReader(video);
     mainMemoryBus.addWriter(video);
+    if (options.rc39) {
+      // RC39 Backplane Clone: banked 128K SRAM replaces the stock RAM.
+      final RC39 rc39 = new RC39(options.rc39Trace);
+      if (options.rc39Rom != null) {
+        rc39.loadRom10k(options.rc39Rom);
+      }
+      System.out.println("[rc39] RC39 memory map active (128K SRAM, bank " +
+                         "register at port 0x70)");
+      final RC39.MemoryView mem = rc39.new MemoryView();
+      mainMemoryBus.addReader(mem);
+      mainMemoryBus.addWriter(mem);
+      final RC39.PortView ports = rc39.new PortView();
+      portMemoryBus.addReader(ports);
+      portMemoryBus.addWriter(ports);
+    }
     if (sd) {
       final SDLoader loader = new SDLoader(options.sdTrace);
       if (options.dosRom != null) {
@@ -124,6 +148,7 @@ public class VZ200
 
   private void run()
   {
+    io.getVideo().focusScreen();
     monitor.run("n+=annotations.xml\n" +
                 "n+=annotations-math.xml\n" +
                 "n+=annotations-rt.xml\n" +
@@ -145,6 +170,13 @@ public class VZ200
       "  --sd-trace       print SD commands and loader register writes\n" +
       "  --sd-loader      fit the loader hardware even without a card\n" +
       "Any --dos-rom / --sd-* option enables the SD loader.\n" +
+      "\n" +
+      "RC39 Backplane Clone (off unless requested; not combinable with SD options):\n" +
+      "  --rc39           RC39 memory map: 128K SRAM, 8 x 16K banks at $C000,\n" +
+      "                   bank register / 10K ROM-RAM window at port 0x70\n" +
+      "  --rc39-rom FILE  image shown in the 10K window ($4000-$67FF) while bit 3\n" +
+      "                   of the bank register is 0 (raw, max 10K, or .VZ)\n" +
+      "  --rc39-trace     print writes to the bank register\n" +
       "\n" +
       "sound:\n" +
       "  --audio-list     list the sound devices Java can see, then exit\n" +
@@ -187,6 +219,14 @@ public class VZ200
         options.sdTrace = true;
       } else if (a.equals("--sd-loader")) {
         options.sdLoader = true;
+      } else if (a.equals("--rc39")) {
+        options.rc39 = true;
+      } else if (a.equals("--rc39-rom") && hasValue) {
+        options.rc39Rom = new File(argv[++i]);
+        options.rc39 = true;
+      } else if (a.equals("--rc39-trace")) {
+        options.rc39Trace = true;
+        options.rc39 = true;
       } else {
         usage();
         System.exit(2);
@@ -201,6 +241,11 @@ public class VZ200
     }
     if (options.sdImage != null && options.sdDir != null) {
       System.err.println("use either --sd-image or --sd-dir, not both");
+      System.exit(2);
+    }
+    if (options.rc39 && options.useSDLoader()) {
+      System.err.println("--rc39 cannot be combined with --dos-rom / --sd-* " +
+                         "options");
       System.exit(2);
     }
     new VZ200(options).run();
