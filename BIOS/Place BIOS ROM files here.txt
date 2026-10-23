@@ -1,1 +1,7 @@
 Place the VZ200 BIOS ROM files in this directory.
+basic rom must be named VZ200_20.bin and dos must be
+named VZDOS.VZ for the SD-Loder target.
+
+VZDOS simlinks to the SD folder so all you have to do
+is copy it here if you are under linux.  anyplace else
+delete the simlink in the SD folder and copy there as well.
