@@ -441,6 +441,7 @@ public class Z80 implements CPU {
 
   private Reg8 regA, regF, regB, regC, regD, regE, regH, regL;
   private RegPair regAF, regBC, regDE, regHL;
+  private Reg8 regIXH, regIXL, regIYH, regIYL;
   private Reg16 regIX, regIY;
   private Reg8 regI, regR;
   private Reg16 regSP, regPC;
@@ -471,6 +472,12 @@ public class Z80 implements CPU {
   /** 8 bit registers excluding indirect (HL) addressing */
   private /*final*/ Reg8[] DREG8;
 
+  /** 8 bit registers with IX half registers */
+  private /*final*/ Reg8[] DIXREG8;
+
+  /** 8 bit registers with IY half registers */
+  private /*final*/ Reg8[] DIYREG8;
+
   /** registers for "ADD IX,reg16" operation */
   private /*final*/ Reg16[] QREG16;
 
@@ -490,8 +497,16 @@ public class Z80 implements CPU {
     regBC = new RegPair(regB, regC);
     regDE = new RegPair(regD, regE);
     regHL = new RegPair(regH, regL);
-    regIX = new GenericReg16("IX");
-    regIY = new GenericReg16("IY");
+    regIXH = new GenericReg8("IXH");
+    regIXL = new GenericReg8("IXL");
+    regIX = new RegPair(regIXH, regIXL) {
+      public String getName() { return "IX"; }
+    };
+    regIYH = new GenericReg8("IYH");
+    regIYL = new GenericReg8("IYL");
+    regIY = new RegPair(regIYH, regIYL) {
+      public String getName() { return "IY"; }
+    };
     regI = new GenericReg8("I");
     regR = new GenericReg8("R");
     regSP = new GenericReg16("SP");
@@ -520,6 +535,12 @@ public class Z80 implements CPU {
     };
     DREG8 = new Reg8[] {
       regB, regC, regD, regE, regH, regL, null, regA
+    };
+    DIXREG8 = new Reg8[] {
+      regB, regC, regD, regE, regIXH, regIXL, null, regA
+    };
+    DIYREG8 = new Reg8[] {
+      regB, regC, regD, regE, regIYH, regIYL, null, regA
     };
     QREG16 = new Reg16[] {
       regBC, regDE, regIX, regSP
@@ -815,6 +836,8 @@ public class Z80 implements CPU {
       new Enumeration("PREG16", PREG16),
       new Enumeration("REG8", REG8),
       new Enumeration("DREG8", DREG8),
+      new Enumeration("DIXREG8", DIXREG8),
+      new Enumeration("DIYREG8", DIYREG8),
       new Enumeration("QREG16", QREG16),
       new Enumeration("RREG16", RREG16),
       new Enumeration("COND", COND),
@@ -1390,6 +1413,28 @@ public class Z80 implements CPU {
     },
     new GenericOperation() {
       public void init() {
+	init("ADC \\DIXREG8[x]",
+	     "1101110110001xxx",
+	     8, 0);
+      }
+      public void execute0(Arguments args) {
+	Reg8 r = DIXREG8[getArg(args, 'x')];
+	if (r != null) regA.setValue(doADC8(regA.getValue(), r.getValue()));
+      }
+    },
+    new GenericOperation() {
+      public void init() {
+	init("ADC \\DIYREG8[x]",
+	     "1111110110001xxx",
+	     8, 0);
+      }
+      public void execute0(Arguments args) {
+	Reg8 r = DIYREG8[getArg(args, 'x')];
+	if (r != null) regA.setValue(doADC8(regA.getValue(), r.getValue()));
+      }
+    },
+    new GenericOperation() {
+      public void init() {
 	init("ADC \\DREG8[x]",
 	     "10001xxx",
 	     4, 0);
@@ -1476,6 +1521,28 @@ public class Z80 implements CPU {
     },
     new GenericOperation() {
       public void init() {
+	init("ADD \\DIXREG8[x]",
+	     "1101110110000xxx",
+	     8, 0);
+      }
+      public void execute0(Arguments args) {
+	Reg8 r = DIXREG8[getArg(args, 'x')];
+	if (r != null) regA.setValue(doADD8(regA.getValue(), r.getValue()));
+      }
+    },
+    new GenericOperation() {
+      public void init() {
+	init("ADD \\DIYREG8[x]",
+	     "1111110110000xxx",
+	     8, 0);
+      }
+      public void execute0(Arguments args) {
+	Reg8 r = DIYREG8[getArg(args, 'x')];
+	if (r != null) regA.setValue(doADD8(regA.getValue(), r.getValue()));
+      }
+    },
+    new GenericOperation() {
+      public void init() {
 	init("ADD \\DREG8[x]",
 	     "10000xxx",
 	     4, 0);
@@ -1525,6 +1592,28 @@ public class Z80 implements CPU {
       public void execute0(Arguments args) {
 	indirectIYDisp8.setDisp8(getArg(args, 'd'));
 	doAND(regA, indirectIYDisp8.getValue());
+      }
+    },
+    new GenericOperation() {
+      public void init() {
+	init("AND \\DIXREG8[x]",
+	     "1101110110100xxx",
+	     8, 0);
+      }
+      public void execute0(Arguments args) {
+	Reg8 r = DIXREG8[getArg(args, 'x')];
+	if (r != null) doAND(regA, r.getValue());
+      }
+    },
+    new GenericOperation() {
+      public void init() {
+	init("AND \\DIYREG8[x]",
+	     "1111110110100xxx",
+	     8, 0);
+      }
+      public void execute0(Arguments args) {
+	Reg8 r = DIYREG8[getArg(args, 'x')];
+	if (r != null) doAND(regA, r.getValue());
       }
     },
     new GenericOperation() {
@@ -1660,6 +1749,28 @@ public class Z80 implements CPU {
     },
     new GenericOperation() {
       public void init() {
+	init("CP \\DIXREG8[x]",
+	     "1101110110111xxx",
+	     8, 0);
+      }
+      public void execute0(Arguments args) {
+	Reg8 r = DIXREG8[getArg(args, 'x')];
+	if (r != null) doCP(regA.getValue(), r.getValue());
+      }
+    },
+    new GenericOperation() {
+      public void init() {
+	init("CP \\DIYREG8[x]",
+	     "1111110110111xxx",
+	     8, 0);
+      }
+      public void execute0(Arguments args) {
+	Reg8 r = DIYREG8[getArg(args, 'x')];
+	if (r != null) doCP(regA.getValue(), r.getValue());
+      }
+    },
+    new GenericOperation() {
+      public void init() {
 	init("CP \\DREG8[x]",
 	     "10111xxx",
 	     4, 0);
@@ -1776,6 +1887,28 @@ public class Z80 implements CPU {
       public void execute0(Arguments args) {
 	indirectIYDisp8.setDisp8(getArg(args, 'd'));
 	doDEC8(indirectIYDisp8);
+      }
+    },
+    new GenericOperation() {
+      public void init() {
+	init("DEC \\DIXREG8[x]",
+	     "1101110100xxx101",
+	     8, 0);
+      }
+      public void execute0(Arguments args) {
+	Reg8 r = DIXREG8[getArg(args, 'x')];
+	if (r != null) doDEC8(r);
+      }
+    },
+    new GenericOperation() {
+      public void init() {
+	init("DEC \\DIYREG8[x]",
+	     "1111110100xxx101",
+	     8, 0);
+      }
+      public void execute0(Arguments args) {
+	Reg8 r = DIYREG8[getArg(args, 'x')];
+	if (r != null) doDEC8(r);
       }
     },
     new GenericOperation() {
@@ -2026,6 +2159,28 @@ public class Z80 implements CPU {
       public void execute0(Arguments args) {
 	indirectIYDisp8.setDisp8(getArg(args, 'd'));
 	doINC8(indirectIYDisp8);
+      }
+    },
+    new GenericOperation() {
+      public void init() {
+	init("INC \\DIXREG8[x]",
+	     "1101110100xxx100",
+	     8, 0);
+      }
+      public void execute0(Arguments args) {
+	Reg8 r = DIXREG8[getArg(args, 'x')];
+	if (r != null) doINC8(r);
+      }
+    },
+    new GenericOperation() {
+      public void init() {
+	init("INC \\DIYREG8[x]",
+	     "1111110100xxx100",
+	     8, 0);
+      }
+      public void execute0(Arguments args) {
+	Reg8 r = DIYREG8[getArg(args, 'x')];
+	if (r != null) doINC8(r);
       }
     },
     new GenericOperation() {
@@ -2468,6 +2623,28 @@ public class Z80 implements CPU {
     },
     new GenericOperation() {
       public void init() {
+	init("LD \\DIXREG8[x],\\VAL8[d]",
+	     "1101110100xxx110dddddddd",
+	     11, 0);
+      }
+      public void execute0(Arguments args) {
+	Reg8 r = DIXREG8[getArg(args, 'x')];
+	if (r != null) r.setValue(getArg(args, 'd'));
+      }
+    },
+    new GenericOperation() {
+      public void init() {
+	init("LD \\DIYREG8[x],\\VAL8[d]",
+	     "1111110100xxx110dddddddd",
+	     11, 0);
+      }
+      public void execute0(Arguments args) {
+	Reg8 r = DIYREG8[getArg(args, 'x')];
+	if (r != null) r.setValue(getArg(args, 'd'));
+      }
+    },
+    new GenericOperation() {
+      public void init() {
 	init("LD \\DREG8[x],(HL)",
 	     "01xxx110",
 	     7, 0);
@@ -2496,6 +2673,30 @@ public class Z80 implements CPU {
       public void execute0(Arguments args) {
 	indirectIYDisp8.setDisp8(getArg(args, 'd'));
 	DREG8[getArg(args, 'x')].setValue(indirectIYDisp8.getValue());
+      }
+    },
+    new GenericOperation() {
+      public void init() {
+	init("LD \\DIXREG8[x],\\DIXREG8[y]",
+	     "1101110101xxxyyy",
+	     8, 0);
+      }
+      public void execute0(Arguments args) {
+	Reg8 rx = DIXREG8[getArg(args, 'x')];
+	Reg8 ry = DIXREG8[getArg(args, 'y')];
+	if (rx != null && ry != null) rx.setValue(ry.getValue());
+      }
+    },
+    new GenericOperation() {
+      public void init() {
+	init("LD \\DIYREG8[x],\\DIYREG8[y]",
+	     "1111110101xxxyyy",
+	     8, 0);
+      }
+      public void execute0(Arguments args) {
+	Reg8 rx = DIYREG8[getArg(args, 'x')];
+	Reg8 ry = DIYREG8[getArg(args, 'y')];
+	if (rx != null && ry != null) rx.setValue(ry.getValue());
       }
     },
     new GenericOperation() {
@@ -2667,6 +2868,28 @@ public class Z80 implements CPU {
       public void execute0(Arguments args) {
 	indirectIYDisp8.setDisp8(getArg(args, 'd'));
 	doOR(regA, indirectIYDisp8.getValue());
+      }
+    },
+    new GenericOperation() {
+      public void init() {
+	init("OR \\DIXREG8[x]",
+	     "1101110110110xxx",
+	     8, 0);
+      }
+      public void execute0(Arguments args) {
+	Reg8 r = DIXREG8[getArg(args, 'x')];
+	if (r != null) doOR(regA, r.getValue());
+      }
+    },
+    new GenericOperation() {
+      public void init() {
+	init("OR \\DIYREG8[x]",
+	     "1111110110110xxx",
+	     8, 0);
+      }
+      public void execute0(Arguments args) {
+	Reg8 r = DIYREG8[getArg(args, 'x')];
+	if (r != null) doOR(regA, r.getValue());
       }
     },
     new GenericOperation() {
@@ -3191,6 +3414,28 @@ public class Z80 implements CPU {
     },
     new GenericOperation() {
       public void init() {
+	init("SBC \\DIXREG8[x]",
+	     "1101110110011xxx",
+	     8, 0);
+      }
+      public void execute0(Arguments args) {
+	Reg8 r = DIXREG8[getArg(args, 'x')];
+	if (r != null) regA.setValue(doSBC8(regA.getValue(), r.getValue()));
+      }
+    },
+    new GenericOperation() {
+      public void init() {
+	init("SBC \\DIYREG8[x]",
+	     "1111110110011xxx",
+	     8, 0);
+      }
+      public void execute0(Arguments args) {
+	Reg8 r = DIYREG8[getArg(args, 'x')];
+	if (r != null) regA.setValue(doSBC8(regA.getValue(), r.getValue()));
+      }
+    },
+    new GenericOperation() {
+      public void init() {
 	init("SBC \\DREG8[x]",
 	     "10011xxx",
 	     4, 0);
@@ -3423,6 +3668,28 @@ public class Z80 implements CPU {
     },
     new GenericOperation() {
       public void init() {
+	init("SUB \\DIXREG8[x]",
+	     "1101110110010xxx",
+	     8, 0);
+      }
+      public void execute0(Arguments args) {
+	Reg8 r = DIXREG8[getArg(args, 'x')];
+	if (r != null) regA.setValue(doSUB8(regA.getValue(), r.getValue()));
+      }
+    },
+    new GenericOperation() {
+      public void init() {
+	init("SUB \\DIYREG8[x]",
+	     "1111110110010xxx",
+	     8, 0);
+      }
+      public void execute0(Arguments args) {
+	Reg8 r = DIYREG8[getArg(args, 'x')];
+	if (r != null) regA.setValue(doSUB8(regA.getValue(), r.getValue()));
+      }
+    },
+    new GenericOperation() {
+      public void init() {
 	init("SUB \\DREG8[x]",
 	     "10010xxx",
 	     4, 0);
@@ -3472,6 +3739,28 @@ public class Z80 implements CPU {
       public void execute0(Arguments args) {
 	indirectIYDisp8.setDisp8(getArg(args, 'd'));
 	doXOR(regA, indirectIYDisp8.getValue());
+      }
+    },
+    new GenericOperation() {
+      public void init() {
+	init("XOR \\DIXREG8[x]",
+	     "1101110110101xxx",
+	     8, 0);
+      }
+      public void execute0(Arguments args) {
+	Reg8 r = DIXREG8[getArg(args, 'x')];
+	if (r != null) doXOR(regA, r.getValue());
+      }
+    },
+    new GenericOperation() {
+      public void init() {
+	init("XOR \\DIYREG8[x]",
+	     "1111110110101xxx",
+	     8, 0);
+      }
+      public void execute0(Arguments args) {
+	Reg8 r = DIYREG8[getArg(args, 'x')];
+	if (r != null) doXOR(regA, r.getValue());
       }
     },
     new GenericOperation() {
