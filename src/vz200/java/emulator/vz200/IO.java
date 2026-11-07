@@ -156,7 +156,7 @@ public class IO implements
       data = keyboard.readByte(address, wallClockTime) & 0x3f;
       if (isCassInHigh(wallClockTime))
         data |= 0x40;
-      if (video.hs())
+      if (video.fs())
         data |= 0x80;
     } else {
       data = BYTE_UNDEFINED;
@@ -186,8 +186,8 @@ public class IO implements
       if (cassetteFileOut != null) {
         cassetteFileOut.putEvent(cassetteOutValue, wallClockTime);
       }
-      video.setDisplayMode((value & 0x08) != 0x0);
-      video.setColorMode((value & 0x10) != 0x0);
+      video.setDisplayMode((value & 0x08) != 0x0, wallClockTime);
+      video.setColorMode((value & 0x10) != 0x0, wallClockTime);
     }
   }
 

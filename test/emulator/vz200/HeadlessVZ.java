@@ -30,7 +30,6 @@ public class HeadlessVZ
   private List<KeyboardMatrix.Key> held;
   private int keyPhase;
   private long cycles;
-  private int hsToggle;
   public long frames;
   public int latch;                                  // last write to $6800-$6FFF
 
@@ -39,13 +38,16 @@ public class HeadlessVZ
     public int readByte(final int a, final long t)
     {
       if (a < 0x6800 || a > 0x6fff) return 0xff;
-      hsToggle ^= 1;
-      return (matrix.read(a - 0x6800) & 0x3f) | (hsToggle << 7);
+      // MAME wires MC6847 field sync, not horizontal sync, to bit 7.
+      final boolean fs = Video.fieldSyncAt(t);
+      return (matrix.read(a - 0x6800) & 0x3f) | (fs ? 0x80 : 0x00);
     }
     public int readShort(final int a, final long t)
     { return readByte(a, t) | (readByte(a + 1, t) << 8); }
     public void writeByte(final int a, final int v, final long t)
-    { if (a >= 0x6800 && a <= 0x6fff) latch = v & 0xff; }
+    {
+      if (a >= 0x6800 && a <= 0x6fff) latch = v & 0xff;
+    }
     public void writeShort(final int a, final int v, final long t)
     { writeByte(a, v, t); }
     public void resync(final long t) {}

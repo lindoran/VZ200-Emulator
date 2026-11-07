@@ -3,8 +3,11 @@ package emulator.vz200;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
@@ -34,8 +37,8 @@ public class VideoPanel extends JPanel
   private static final Color GREEN_FG_COLOR =
     Color.green.darker().darker();
 
-  private static final Color RED_FG_COLOR =
-    Color.red.darker();
+  private static final Color ORANGE_FG_COLOR =
+    new Color(0x6b, 0x27, 0x00);
 
   private static final Color[] GREEN_TEXT_COLOR_TABLE = {
     GREEN_FG_COLOR, GREEN_FG_COLOR, GREEN_FG_COLOR, GREEN_FG_COLOR,
@@ -44,19 +47,21 @@ public class VideoPanel extends JPanel
     Color.orange.darker(), Color.cyan, Color.magenta, Color.orange
   };
 
-  private static final Color[] RED_TEXT_COLOR_TABLE = {
-    RED_FG_COLOR, RED_FG_COLOR, RED_FG_COLOR, RED_FG_COLOR,
-    RED_FG_COLOR, RED_FG_COLOR, RED_FG_COLOR, RED_FG_COLOR,
+  private static final Color[] ORANGE_TEXT_COLOR_TABLE = {
+    ORANGE_FG_COLOR, ORANGE_FG_COLOR, ORANGE_FG_COLOR, ORANGE_FG_COLOR,
+    ORANGE_FG_COLOR, ORANGE_FG_COLOR, ORANGE_FG_COLOR, ORANGE_FG_COLOR,
     Color.green, Color.yellow, Color.blue, Color.red,
     Color.orange.darker(), Color.cyan, Color.magenta, Color.orange
   };
 
   private static final Color[] GREEN_GRAPHICS_COLOR_TABLE = {
-    Color.green, Color.yellow, Color.blue, Color.red
+    new Color(0x30, 0xd2, 0x00), new Color(0xc1, 0xe5, 0x00),
+    new Color(0x4c, 0x3a, 0xb4), new Color(0x9a, 0x32, 0x36)
   };
 
-  private final static Color[] RED_GRAPHICS_COLOR_TABLE = {
-    Color.orange.darker(), Color.cyan, Color.magenta, Color.orange
+  private final static Color[] ORANGE_GRAPHICS_COLOR_TABLE = {
+    new Color(0xbf, 0xc8, 0xad), new Color(0x41, 0xaf, 0x71),
+    new Color(0xc8, 0x4e, 0xf0), new Color(0xd4, 0x7f, 0x00)
   };
 
   private final int baseAddress;
@@ -69,6 +74,17 @@ public class VideoPanel extends JPanel
   private Color[] textColorTable, graphicsColorTable;
   private boolean displayMode;
   private boolean colorMode;
+
+  /*
+   * The old renderer decoded directVideoRAM from paintComponent().  That is
+   * fine for a static screen, but loses every change made while a field is
+   * being scanned: by the time Swing gets around to painting, only the last
+   * value written to the video latch remains.  The emulation thread now
+   * builds this image one raster line at a time and swaps it at field end.
+   */
+  private BufferedImage frontRaster;
+  private BufferedImage backRaster;
+  private int[] backRasterPixels;
 
   // active window
   private int axleft;
@@ -100,6 +116,9 @@ public class VideoPanel extends JPanel
 		    0x0000, CHARSET_LENGTH).getByteArray();
     videoRAM = new RAMMemory(baseAddress, 0x0800);
     directVideoRAM = videoRAM.getByteArray();
+    frontRaster = new BufferedImage(320, 256, BufferedImage.TYPE_INT_RGB);
+    backRaster = new BufferedImage(320, 256, BufferedImage.TYPE_INT_RGB);
+    backRasterPixels = ((DataBufferInt)backRaster.getRaster().getDataBuffer()).getData();
     invalidator = new Invalidator();
     setZoomFactor(UserPreferences.getInstance().getVideoZoomFactor());
     colorMode = COLOR_MODE_RED; // force initial update
@@ -154,10 +173,9 @@ public class VideoPanel extends JPanel
         graphicsColorTable = GREEN_GRAPHICS_COLOR_TABLE;
       } else { // (colorMode == COLOR_MODE_RED)
         frameColor = RED_FRAME_COLOR;
-        textColorTable = RED_TEXT_COLOR_TABLE;
-        graphicsColorTable = RED_GRAPHICS_COLOR_TABLE;
+        textColorTable = ORANGE_TEXT_COLOR_TABLE;
+        graphicsColorTable = ORANGE_GRAPHICS_COLOR_TABLE;
       }
-      invalidateAll();
     }
   }
 
@@ -165,7 +183,6 @@ public class VideoPanel extends JPanel
   {
     if (this.displayMode != displayMode) {
       this.displayMode = displayMode;
-      invalidateAll();
     }
   }
 
@@ -175,6 +192,101 @@ public class VideoPanel extends JPanel
   }
 
   public void paintComponent(final Graphics g)
+  {
+    final BufferedImage raster;
+    synchronized (this) {
+      raster = frontRaster;
+    }
+    g.drawImage(raster, 0, 0, 320 * zoomFactor, 256 * zoomFactor, null);
+  }
+
+  /**
+   * Decode one physical output line at the instant the video generator
+   * reaches it.  {@code y} is in panel coordinates; callers which model more
+   * physical than displayed lines may legitimately render a y more than once.
+   */
+  public void renderRasterLine(final int y, final boolean graphics,
+                               final boolean red)
+  {
+    renderRasterSpan(y, 0, 320, graphics, red);
+  }
+
+  /**
+   * Decode one horizontal span at the instant the video latch changes.  This
+   * is deliberately finer than a scanline: raster demos change $6800 several
+   * times within one line to make vertical colour bars.
+   */
+  public void renderRasterSpan(final int y, final int x0, final int x1,
+                               final boolean graphics, final boolean red)
+  {
+    if (y < 0 || y >= 256) return;
+    final int startX = Math.max(0, x0);
+    final int endX = Math.min(320, x1);
+    if (startX >= endX) return;
+    final int line = y * 320;
+    final int activeStart = Math.max(32, startX);
+    final int activeEnd = Math.min(288, endX);
+    if (y < 32 || y >= 224 || activeStart >= activeEnd) return;
+
+    if (graphics) {
+      final Color[] colors = red ? ORANGE_GRAPHICS_COLOR_TABLE : GREEN_GRAPHICS_COLOR_TABLE;
+      final int row = (y - 32) / 3;
+      if (row >= 64) return;
+      final int cellStart = (activeStart - 32) / 8;
+      final int cellEnd = (activeEnd - 32 + 7) / 8;
+      for (int cell = cellStart; cell < cellEnd; cell++) {
+        final int value = directVideoRAM[(row << 5) + cell];
+        for (int pair = 0; pair < 4; pair++) {
+          final int rgb = colors[(value >> (6 - pair * 2)) & 0x3].getRGB();
+          final int start = line + 32 + cell * 8 + pair * 2;
+          if (start >= line + activeStart && start < line + activeEnd)
+            backRasterPixels[start] = rgb;
+          if (start + 1 >= line + activeStart && start + 1 < line + activeEnd)
+            backRasterPixels[start + 1] = rgb;
+        }
+      }
+    } else {
+      final Color[] colors = red ? ORANGE_TEXT_COLOR_TABLE : GREEN_TEXT_COLOR_TABLE;
+      final int row = (y - 32) / 12;
+      if (row >= 16) return;
+      final int charLine = (y - 32) % 12;
+      final int cellStart = (activeStart - 32) / 8;
+      final int cellEnd = (activeEnd - 32 + 7) / 8;
+      for (int cell = cellStart; cell < cellEnd; cell++) {
+        final int value = directVideoRAM[(row << 5) + cell];
+        final int bits = charset[value * 12 + charLine];
+        final int fg = colors[value >> 4].getRGB();
+        final int start = line + 32 + cell * 8;
+        for (int bit = 0; bit < 8; bit++) {
+          final int x = start + bit - line;
+          if (x >= activeStart && x < activeEnd)
+            backRasterPixels[start + bit] = (bits & (1 << bit)) == 0 ?
+              Color.black.getRGB() : fg;
+        }
+      }
+    }
+  }
+
+  /** Make the completed emulated field visible to the Swing thread. */
+  public synchronized void presentRaster()
+  {
+    final BufferedImage oldFront = frontRaster;
+    frontRaster = backRaster;
+    backRaster = oldFront;
+    backRasterPixels = ((DataBufferInt)backRaster.getRaster().getDataBuffer()).getData();
+    repaint();
+  }
+
+  /** Start a new field with a stable border; raster latch changes affect only
+   * the VDG's active picture, not this emulator-window decoration. */
+  public void beginRasterField(final boolean red)
+  {
+    Arrays.fill(backRasterPixels,
+                (red ? RED_FRAME_COLOR : GREEN_FRAME_COLOR).getRGB());
+  }
+
+  /* Retained for the legacy dirty-region code below. */
+  public void paintComponentLegacy(final Graphics g)
   {
     // current area to redraw
     int cxleft = sxleft;
