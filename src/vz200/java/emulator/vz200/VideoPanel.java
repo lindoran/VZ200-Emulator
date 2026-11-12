@@ -3,6 +3,11 @@ package emulator.vz200;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
+import java.awt.image.DirectColorModel;
+import java.awt.image.Raster;
+import java.awt.image.WritableRaster;
 import java.io.DataInputStream;
 import java.io.IOException;
 import javax.swing.JPanel;
@@ -59,6 +64,27 @@ public class VideoPanel extends JPanel
     Color.orange.darker(), Color.cyan, Color.magenta, Color.orange
   };
 
+  // RGB lookups for the beam renderer (same palettes as the legacy painter)
+  static int frameRGB(final boolean css)
+  {
+    return (css ? RED_FRAME_COLOR : GREEN_FRAME_COLOR).getRGB();
+  }
+
+  static int textRGB(final boolean css, final int index)
+  {
+    return (css ? RED_TEXT_COLOR_TABLE : GREEN_TEXT_COLOR_TABLE)[index].getRGB();
+  }
+
+  static int graphicsRGB(final boolean css, final int index)
+  {
+    return (css ? RED_GRAPHICS_COLOR_TABLE :
+            GREEN_GRAPHICS_COLOR_TABLE)[index].getRGB();
+  }
+
+  /** Beam-synchronous renderer; null when -Dvz.video.legacy=true. */
+  private Beam beam;
+  private BufferedImage beamImage;
+
   private final int baseAddress;
   private final RAMMemory videoRAM;
   private final int[] directVideoRAM;
@@ -101,10 +127,27 @@ public class VideoPanel extends JPanel
     videoRAM = new RAMMemory(baseAddress, 0x0800);
     directVideoRAM = videoRAM.getByteArray();
     invalidator = new Invalidator();
+    if (!Boolean.getBoolean("vz.video.legacy")) {
+      beam = new Beam(directVideoRAM, charset);
+      final WritableRaster raster = Raster.createPackedRaster(
+        new DataBufferInt(beam.getPixels(), Beam.WIDTH * Beam.HEIGHT),
+        Beam.WIDTH, Beam.HEIGHT, Beam.WIDTH,
+        new int[] { 0xff0000, 0xff00, 0xff }, null);
+      beamImage = new BufferedImage(
+        new DirectColorModel(24, 0xff0000, 0xff00, 0xff), raster, false, null);
+      beam.setFrameListener(new Beam.FrameListener() {
+          public void frameDone() { repaint(); }
+        });
+    }
     setZoomFactor(UserPreferences.getInstance().getVideoZoomFactor());
     colorMode = COLOR_MODE_RED; // force initial update
     setColorMode(COLOR_MODE_GREEN);
     setDisplayMode(DISPLAY_MODE_TEXT);
+  }
+
+  public Beam getBeam()
+  {
+    return beam;
   }
 
   public RAMMemory getVideoRAM()
@@ -176,6 +219,11 @@ public class VideoPanel extends JPanel
 
   public void paintComponent(final Graphics g)
   {
+    if (beam != null) {
+      g.drawImage(beamImage, 0, 0, Beam.WIDTH * zoomFactor,
+                  Beam.HEIGHT * zoomFactor, null);
+      return;
+    }
     // current area to redraw
     int cxleft = sxleft;
     int cxright = sxright;
@@ -324,11 +372,16 @@ public class VideoPanel extends JPanel
 
   public void invalidate(final int address)
   {
+    if (beam != null) return;
     invalidator.invalidate(address);
   }
 
   public void invalidateAll()
   {
+    if (beam != null) {
+      repaint();
+      return;
+    }
     invalidator.invalidateAll();
   }
 

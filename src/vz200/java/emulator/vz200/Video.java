@@ -8,6 +8,7 @@ import emulator.z80.CPU;
 import emulator.z80.MemoryBus;
 import emulator.z80.RAMMemory;
 import emulator.z80.Util;
+import emulator.z80.Z80;
 
 public class Video extends JFrame
   implements MemoryBus.BusReader, MemoryBus.BusWriter
@@ -30,6 +31,8 @@ public class Video extends JFrame
   private long wallClockTime;
   private long prevHsCycleLowStart;
   private long prevFsCycleLowStart;
+  private Beam beam;   // null in legacy mode (-Dvz.video.legacy=true)
+  private Z80 z80;     // source of the T-state counter for accesses
 
   @Override
   public int readByte(final int address, final long wallClockTime)
@@ -48,6 +51,7 @@ public class Video extends JFrame
                         final long wallClockTime)
   {
     final int previousValue = videoRAM.readByte(address, wallClockTime);
+    if (beam != null) beam.beforeVramWrite(accessClock(0));
     videoRAM.writeByte(address, value, wallClockTime);
     if (value != previousValue) {
       panel.invalidate(address);
@@ -59,6 +63,10 @@ public class Video extends JFrame
                          final long wallClockTime)
   {
     final int previousValue = videoRAM.readShort(address, wallClockTime);
+    if (beam != null) {
+      // the low byte is written one M-cycle (3 T) before the instruction ends
+      beam.beforeVramWrite(accessClock(-3));
+    }
     videoRAM.writeShort(address, value, wallClockTime);
     if (value != previousValue) {
       panel.invalidate(address);
@@ -68,6 +76,56 @@ public class Video extends JFrame
 
   @Override
   public void resync(final long wallClockTime) {}
+
+
+  /**
+   * Connects the CPU whose T-state counter drives the beam.  Without it
+   * (or in legacy mode) the old free-running sync model is used.
+   */
+  public void attachCpu(final Z80 z80)
+  {
+    this.z80 = z80;
+  }
+
+  public boolean isBeamMode()
+  {
+    return beam != null;
+  }
+
+  /**
+   * T-state clock at which the memory/port access of the instruction that
+   * is executing right now takes effect: the end of the instruction (the
+   * access is its last machine cycle) plus {@code adjust}.
+   */
+  private long accessClock(final int adjust)
+  {
+    return z80.getWallClockCycles() + z80.getCurrentInstructionPeriods() +
+      adjust;
+  }
+
+  /** A write to the $6800 latch (adjust: see accessClock). */
+  public void latchWrite(final int value, final int adjust)
+  {
+    beam.latchWrite(accessClock(adjust), value);
+  }
+
+  /** FS (= bit 7 of the $6800 read) as the executing instruction sees it. */
+  public boolean fsRead()
+  {
+    return beam.fs(accessClock(0) + beam.readOffset);
+  }
+
+  /** Called after every instruction: draws what the beam has passed. */
+  public void beamTick(final long wallClockCycles)
+  {
+    beam.advanceTo(wallClockCycles);
+  }
+
+  /** Level of the /INT line (FS inverted) after the last instruction. */
+  public boolean intLine(final long wallClockCycles)
+  {
+    return !beam.fs(wallClockCycles);
+  }
 
   public boolean hs()
   {
@@ -130,6 +188,7 @@ public class Video extends JFrame
     panel = new VideoPanel(baseAddress);
     getContentPane().add(panel);
     videoRAM = panel.getVideoRAM();
+    beam = panel.getBeam();
     pack();
     WindowMemory.restoreAndTrack(this, "video");
     setVisible(true);

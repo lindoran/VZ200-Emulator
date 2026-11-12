@@ -1,11 +1,80 @@
-VZ200 / Z80 Emulator
-====================
+VZ200 / Z80 Emulator With Mods
+==============================
 
-Modes: stock VZ200 (default), Benn Venn SD loader (`SD_LOADER.md`), and an
+Modes: stock VZ200 (default), BennVenn SD loader (`SD_LOADER.md`), and an
 opt-in RC39 Backplane Clone memory map (`--rc39`, see `RC39.md`).
 
 This project features a software emulation of the complete hardware of
 a Z80 CPU and a VZ200 computer based on that CPU.
+
+## Why We Forked Instead of Doing a PR:
+
+My reason is fairly simple: since I am a novice Java coder (honestly I 
+know enough to get myself into serious trouble), I leaned very heavily on 
+Claude to do the brunt of the patches. Because of this, I did not
+want to push upstream into the main repo code I don't completely
+understand myself, nor could I explain how parts of it work without 
+a considerable amount of research. Full disclosure: I am a hardware
+person and am very much at home in a full-screen text editor writing 
+assembly or machine code, but medium-level code like Java might as well 
+be another language completely.
+
+Additionally, though work is progressing, there are still bugs and graphics
+glitches that are at a point where I would have to start really pulling 
+apart the rendering engine and figuring out specifically why there are 
+still issues with some raster effects. From that scope, I didn't want to 
+simply push it into somebody else's codebase and say "JOB'S DONE" like 
+a Warcraft peon and move on with my life. So for now—this is a fork.
+
+These are my decisions, and I don't hold anybody else responsible. 
+Mainly, I modified this so I would have an easy-to-package emulator which 
+runs headless and I can throw into a sandbox, even a web AI client, and
+get decent results.  
+
+## With That Out of the Way, What Is Here?
+
+Well, it's exactly Jürgen Reuter's VZ200 emulator with mods, which include:
+
+- Improved sound support; plays on the newest Ubuntu LTS release (not tested in Windows,
+  but I'm fairly sure it's going to work there too).
+- Improved VZ support and loading from the fast loader repo.
+- Beam position rendering (for raster effects). This works so-so; the best example of 
+  what work needs to be done is the brand-new VZMEGA.VZ demo, which mostly works, but
+  there are still obvious bugs. see `BEAM_VIDEO.md for detals.
+- Support for the HB200 RC39 backplane and its memory map.
+- Support for the BV SD loader, but currently does not support the file limit "bug"
+  (i.e., it's just going to load a file no matter what the size is, up to the firmware
+  maximum around 64k). I struggled with understanding the nature of the bug, so 
+  hopefully when I get an actual loader I can lend a hand with that—just looking 
+  at the Verilog, it doesn't look like a simple problem to define (but might be easy 
+  to fix with a scope/logic analysis).
+- Support for both the VZ300 and VZ200 memory maps, which correctly allocate the page
+  selection for the SD loader.
+- Added about 3–4 missed/broken opcodes in the Z80 core.
+- Small stability and headless improvements for both performance and color accuracy.
+- Small helper scripts and drop directories to make running the emulator simpler.
+
+## Arbitration Notes:
+
+Obviously, this is Jürgen Reuter's work. Thanks so much for making such a fun emulator 
+to play around with in Java. I definitely learned a lot, and I think that was mostly 
+the point.
+
+Secondly, thank you to the MAME team. The MAME emulator was absolutely 
+referenced to redo the graphics engine. As stated before, because of the size of the
+codebase and the extent of the patches, it's very possible tables, algorithms, 
+logic arrangements, and processes were copied verbatim into the code. While MAME is C++
+and this repo is Java, I couldn't take credit for what was done here without first stating 
+that. And so I recommend you check that codebase out for yourself; it is: 
+
+https://github.com/mamedev/mame
+
+The link above is provided so that cited material can be properly attributed. MAME is also 
+GPL-2.0 and is wonderful. If you want to learn about how to code an emulator, I would 
+definitely start there.
+
+
+## BELOW IS THE ORIGINAL REPOSITORY README.md
 
 I will add more detailed documentation somewhat later, since
 currently, many things are still changing and it would not make a

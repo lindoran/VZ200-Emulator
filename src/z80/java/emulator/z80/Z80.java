@@ -633,6 +633,15 @@ public class Z80 implements CPU {
     irq_requested = true;
   }
 
+  // Level of the /INT pin.  Unlike requestIRQ() (a latched request that
+  // RETI clears), the line keeps interrupting whenever interrupts are
+  // enabled for as long as the device holds it low.
+  private boolean irq_line;
+
+  public void setIRQLine(final boolean asserted) {
+    irq_line = asserted;
+  }
+
   public void requestNMI() {
     nmi_requested = true;
   }
@@ -677,6 +686,17 @@ public class Z80 implements CPU {
    */
   public long getWallClockTime() {
     return wallClockTime;
+  }
+
+  private int currentInstructionPeriods;
+
+  /**
+   * T-states of the instruction being executed (valid while it executes,
+   * i.e. from inside memory / port accesses it performs).  The wall clock
+   * still shows the clock at the start of that instruction.
+   */
+  public int getCurrentInstructionPeriods() {
+    return currentInstructionPeriods;
   }
 
   private void updateWallClock(int cycles) {
@@ -950,6 +970,7 @@ public class Z80 implements CPU {
     }
 
     public void execute() {
+      currentInstructionPeriods = getClockPeriods();
       genericOperation.execute(args);
       updateWallClock(getClockPeriods());
       if (statisticsEnabled) {
@@ -4732,7 +4753,7 @@ public class Z80 implements CPU {
           irq_to_be_enabled = false;
         }
 	workPending = true;
-      } else if (irq_requested && irq_enabled) {
+      } else if ((irq_requested || irq_line) && irq_enabled) {
         irq_enabled = false;
 	switch (regIM.getValue()) {
 	  case INTR_MODE_0 :

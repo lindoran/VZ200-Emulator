@@ -1,1 +1,4 @@
-Place files for the emulated SD card in this directory.
+Place files for the emulated SD card in this directory. a symlink is provided to link 
+a bios named VZDOS.VZ from the BIOS folder.  if this gives you trouble simply copy it
+both places... I can't forcee every posix enviornment -- and it wont work on windows 
+there just copy the file here.

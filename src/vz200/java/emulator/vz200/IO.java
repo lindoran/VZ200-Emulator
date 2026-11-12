@@ -51,6 +51,7 @@ public class IO implements
   private long timePerClockCycle;
   private long wallClockCycles;
   private long wallClockTime;
+  private emulator.z80.Z80 z80;
 
   private IO()
   {
@@ -98,6 +99,13 @@ public class IO implements
     if (cassetteFileOut != null) {
       cassetteFileOut.resync();
     }
+  }
+
+  /** Connects the CPU so video timing follows its T-state counter. */
+  public void attachCpu(final emulator.z80.Z80 z80)
+  {
+    this.z80 = z80;
+    video.attachCpu(z80);
   }
 
   public Video getVideo()
@@ -156,7 +164,7 @@ public class IO implements
       data = keyboard.readByte(address, wallClockTime) & 0x3f;
       if (isCassInHigh(wallClockTime))
         data |= 0x40;
-      if (video.hs())
+      if (video.isBeamMode() ? video.fsRead() : video.hs())
         data |= 0x80;
     } else {
       data = BYTE_UNDEFINED;
@@ -186,15 +194,25 @@ public class IO implements
       if (cassetteFileOut != null) {
         cassetteFileOut.putEvent(cassetteOutValue, wallClockTime);
       }
-      video.setDisplayMode((value & 0x08) != 0x0);
-      video.setColorMode((value & 0x10) != 0x0);
+      if (video.isBeamMode()) {
+        video.latchWrite(value, latchAdjust);
+      } else {
+        video.setDisplayMode((value & 0x08) != 0x0);
+        video.setColorMode((value & 0x10) != 0x0);
+      }
     }
   }
+
+  // clock adjustment (relative to the end of the instruction) of the
+  // write currently being performed; -3 for the first byte of a 16 bit store
+  private int latchAdjust;
 
   public void writeShort(int address, final int value,
                          final long wallClockTime)
   {
+    latchAdjust = -3;
     writeByte(address++, value & 0xff, wallClockTime);
+    latchAdjust = 0;
     writeByte(address, (value >> 8) & 0xff, wallClockTime);
   }
 
@@ -211,7 +229,12 @@ public class IO implements
       speaker.tick(wallClockTime);
       cassetteCtrlRoomOut.tick(wallClockTime);
     }
-    if (video.updateWallClock(wallClockCycles, wallClockTime)) {
+    if (video.isBeamMode()) {
+      // FS is wired to /INT: the line is low (interrupting) for as long as
+      // FS is low, and the CPU takes the interrupt whenever IFF1 allows it.
+      video.beamTick(wallClockCycles);
+      if (z80 != null) z80.setIRQLine(video.intLine(wallClockCycles));
+    } else if (video.updateWallClock(wallClockCycles, wallClockTime)) {
       cpuControl.requestIRQ();
     }
   }

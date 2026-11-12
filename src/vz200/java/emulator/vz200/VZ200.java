@@ -95,6 +95,7 @@ public class VZ200
                     (options.vz300Ram ? 0xb800 : SDLoader.HI_START) - RAM_START);
     io = new IO(cpuControl, z80, z80.getWallClockTime());
     z80.addWallClockListener(io);
+    io.attachCpu(z80);
     final Video video = io.getVideo();
     if (ram != null) {
       mainMemoryBus.addReader(ram);
