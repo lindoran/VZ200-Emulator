@@ -52,11 +52,11 @@ Well, it's exactly Jürgen Reuter's VZ200 emulator with mods, which include:
   selection for the SD loader.
 - Added about 3–4 missed/broken opcodes in the Z80 core.
 - Small stability and headless improvements for both performance and color accuracy.
-- Small helper scripts and drop directories to make running the emulator simpler. simply 
-  `./build.sh` or `./run.sh` gets you where you need to go in most cases.  Please see the
-  drop directories `./BIOS` and `./SD` for more detials on using the drop directories with 
+- Small helper scripts and drop directories to make running the emulator simpler. Simply 
+  `./build.sh` or `./run.sh` gets you where you need to go in most cases. Please see the
+  drop directories `./BIOS` and `./SD` for more details on using the drop directories with 
   these scripts.
-- minor repo formatting to previent 3rd party material from propigating through a simple 
+- Minor repo formatting to prevent 3rd-party material from propagating through a simple 
   commit.
 
 ## Arbitration Notes:
