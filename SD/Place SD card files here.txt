@@ -1,4 +1,44 @@
-Place files for the emulated SD card in this directory. a symlink is provided to link 
-a bios named VZDOS.VZ from the BIOS folder.  if this gives you trouble simply copy it
-both places... I can't forcee every posix enviornment -- and it wont work on windows 
-there just copy the file here.
+Place files for the emulated SD card in this directory.
+
+When running with the Benn Venn SD Loader (e.g., `./run.sh sd-loader` or
+`./run.sh sd-loader-vz300`), the emulator presents this folder and its
+subfolders to the loader firmware as a virtual FAT32 SD card.
+
+Required Firmware (IMPORTANT!!!):
+- VZDOS.VZ — the Benn Venn SD Loader DOS firmware.
+  A symlink (`SD/VZDOS.VZ -> ../BIOS/VZDOS.VZ`) is provided for POSIX systems.
+  If this gives you trouble or if you are running on Windows (which does not
+  handle POSIX symlinks cleanly), simply copy `VZDOS.VZ` directly from the
+  `BIOS/` folder into this directory.
+
+File Naming Rules:
+- Files and subdirectories MUST follow the standard DOS 8.3 format:
+  up to 8 characters for the filename, and up to 3 for the extension
+  (e.g., GAME.VZ, LEVEL1.DAT).
+- Names are case-insensitive.
+- Files with long names or directory names containing dots are not supported
+  by VZDOS and will be skipped by the emulator with a warning.
+- Hidden files and dotfiles (starting with '.') are ignored.
+
+Common File Types:
+- .VZ  — VZ200 / VZ300 programs and memory snapshots
+- .DAT — Binary data files used by multi-part titles and demos
+
+Capacity Limits:
+- In-Memory Card Limit: 1 GiB max total contents for this folder. The emulator
+  synthesizes the entire FAT32 card image in RAM at startup. (Typical VZ programs
+  are only 2 KB to 40 KB, so 1 GiB holds vastly more than the entire VZ200 catalog).
+- For larger raw disk images, the emulator supports SDHC images up to 32 GB via
+  the `--sd-image` command line option.
+
+Using the SD Card (VZDOS Commands):
+- DIR            — List files and directories on the SD card
+- LOAD"NAME"     — Load and run a program (e.g., LOAD"13GHOSTS")
+- SAVE"NAME"     — Save a program to the SD card
+- CD"DIR"        — Change directory (e.g., CD"GAMES", CD"..")
+
+Host Write-Back:
+- Changes written to the card by the emulator (such as SAVE or program data
+  writes) are automatically synced back to this host folder.
+- New files will be created and modified files will be updated; existing files
+  are never deleted from the host folder.

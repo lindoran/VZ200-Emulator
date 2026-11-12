@@ -11,6 +11,8 @@ Benn Venn titles expect, so the *unmodified* VZDOS firmware runs on top of it.
          --os-rom  refrence_rom.bin \      # 16 KB BASIC ROM (or build it in as os.rom)
          --dos-rom VZDOS.VZ \              # loader firmware (VZDOS.VZ or VZDOS.BIN/.OBJ)
          --sd-dir  path/to/folder          # or: --sd-image card.img
+         
+    alternatively the ./run.sh sd-loader will do the trick in linux
 
 Other options: `--sd-ro` (never modify the card/folder), `--sd-trace` (print
 every SD command and loader register write), `--sd-mbr` (see below),
